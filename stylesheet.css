@@ -68,6 +68,11 @@ a {
   text-decoration: none;
 }
 
+span.authors a  {
+  color: #000000;
+  text-decoration: none;
+}
+
 a:focus,
 a:hover {
   color: #f09228;
@@ -129,3 +134,27 @@ name {
 span.highlight {
   background-color: #ffffd0;
 }
+
+/* Style for active category links */
+.category-link.active {
+  color: blue; /* You can change the style as per your preference */
+  font-weight: bold;
+}
+
+/* Style for inactive category links */
+.category-link {
+  color: black; /* Default color for inactive category links */
+  text-decoration: none;
+  margin-right: 10px; /* Add some spacing between category links */
+}
+
+/* Style for active category bodies */
+.category-body.active {
+  display: block;
+}
+
+/* Style for inactive category bodies */
+.category-body {
+  display: none;
+}
+

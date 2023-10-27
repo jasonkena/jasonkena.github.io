@@ -1,0 +1,253 @@
+name: Jason Ken Adhinarta
+email: jason.adhinarta@bc.edu
+cv: static/Jason_Adhinarta_CV.pdf
+github: https://github.com/jasonkena/
+mugshot: static/mugshot.png
+
+bio: |
+  I am a third-year undergraduate at [Boston College](https://www.bc.edu/) studying Computer Science and Mathematics. I work as a research assistant at [Prof. Donglai Wei's Computer Vision lab](https://donglaiw.github.io/), focusing on the area of [connectomics](https://connectomics.readthedocs.io/en/latest/).
+
+  I lead the [BC Machine Intelligence Group](https://github.com/BCMIG) (club), am a member in the [BC Experimental Math and Machine Learning Lab](https://sites.google.com/view/bcexpmmll/home), and am part of BC Competitive Programming.
+
+  Previously, I held a research internship at [EPFL's CVLab](https://www.epfl.ch/labs/cvlab/) where I had the privilege of being mentored by [Dr. Jiancheng Yang](https://jiancheng-yang.com/) and [Prof. Pascal Fua](https://people.epfl.ch/pascal.fua/bio). Additionally, I interned at [Emmerich Research Center](https://www.research.emmerich.co.id/) under [Dr. Eden Steven](https://www.research.emmerich.co.id/eden-steven).
+  
+# My research interests lie in 3D instance segmentation, biomedical image analysis, and unsupervised learning. 
+people:
+  - 
+    name: jadhinarta
+    link: "**Jason K. Adhinarta**"
+  - 
+    name: dwei
+    link: "[Donglai Wei](https://donglaiw.github.io/)"
+  - 
+    name: esteven
+    link: "[Eden Steven](https://www.researchgate.net/profile/Eden-Steven)"
+  - 
+    name: sgu
+    link: "[Shixuan Gu](https://shixuan-gu.me/)"
+  -
+    name: hpfister
+    link: "[Hanspeter Pfister](https://vcg.seas.harvard.edu/people/hanspeter-pfister)"
+  -
+    name: jlichtman
+    link: "[Jeff W. Lichtman](https://lichtmanlab.fas.harvard.edu/people/jeff-lichtman)"
+  -
+    name: ejobiliong
+    link: "[Eric Jobiliong](https://scholar.google.com/citations?user=nfYmvboAAAAJ)"
+  -
+    name: mshiddiq
+    link: "[Muhandis Shiddiq](https://scholar.google.com/citations?user=pBGCAYoAAAAJ)"
+  -
+    name: huranus
+    link: "[Henri P. Uranus](https://scholar.google.co.id/citations?user=m391CJoAAAAJ)"
+  -
+    name: xhan
+    link: "[Xiaomeng Han](https://lichtmanlab.fas.harvard.edu/people/xiaomeng-mona-han)"
+  -
+    name: xlu
+    link: "[Xiaotang Lu](https://lichtmanlab.fas.harvard.edu/people/xiaotang-lu)"
+  -
+    name: pli
+    link: "[Peter H. Li](https://scholar.google.com/citations?hl=en&user=xI79obUAAAAJ)"
+  -
+    name: swang
+    link: "[Shuohong Wang](https://lichtmanlab.fas.harvard.edu/people/shuohong-wang)"
+  - 
+    name: rschalek
+    link: "[Richard Schalek](https://lichtmanlab.fas.harvard.edu/people/richard-schalek)"
+  -
+    name: ymeirovitch
+    link: "[Yaron Meirovitch](https://lichtmanlab.fas.harvard.edu/people/yaron-meirovitch)"
+  -
+    name: zlin
+    link: "[Zudi Lin](https://zudi-lin.github.io/)"
+  -
+    name: dberger
+    link: "[Daniel Berger](https://scholar.google.com/citations?user=peHbOtYAAAAJ&hl=en)"
+  -
+    name: ywu
+    link: "[Yuelong Wu](https://lichtmanlab.fas.harvard.edu/people/yuelong-wu)"
+  -
+    name: tfang
+    link: "[Tao Fang](https://scholar.google.com/citations?hl=en&user=FEDKywsAAAAJ)"
+  -
+    name: emeral
+    link: "Elif S. Meral"
+  -
+    name: sasraf
+    link: "Shadnan Asraf"
+  -
+    name: hploegh
+    link: "[Hidde Ploegh](https://www.childrenshospital.org/research/labs/ploegh-lab-research/hidde-ploegh)"
+  -
+    name: vjain
+    link: "[Viren Jain](https://www.virenjain.org/)"
+  -
+    name: jtrimmer
+    link: "James S. Trimmer"
+  -
+    name: mbessmeltsev
+    link: "[Mikhail Bessmeltsev](http://www-labs.iro.umontreal.ca/~bmpix/)"
+  -
+    name: jyang
+    link: "[Jiancheng Yang](https://jiancheng-yang.com/)"
+  -
+    name: yzhang
+    link: "[Yongjie J. Zhang](https://www.meche.engineering.cmu.edu/directory/bios/zhang-yongjie.html)"
+  -
+    name: ljin
+    link: "Liang Jin"
+  -
+    name: kkuang
+    link: "[Kaiming Kuang](https://kaimingkuang.github.io/)"
+  -
+    name: bni
+    link: "[Bingbing Ni](https://scholar.google.com/citations?user=eUbmKwYAAAAJ)"
+  -
+    name: mli
+    link: "[Ming Li](https://www.researchgate.net/profile/Ming-Li-50)"
+
+
+publications:
+  -
+    name: "FreSeg: Frenet-Frame-based Part Segmentation for 3D Curvilinear Structures"
+    authors:
+      - sgu
+      - jadhinarta
+      - mbessmeltsev
+      - jyang
+      - yzhang
+      - dberger
+      - jlichtman
+      - hpfister
+      - dwei
+    link: "[manuscript in preparation]"
+    image: static/dendrite.jpg
+    video: static/dendrite.mp4
+  -
+    name: Multiplexed Volumetric CLEM enabled by antibody derivatives provides new insights into the cytology of the mouse cerebellar cortex
+    authors:
+      - xhan
+      - xlu
+      - pli
+      - swang
+      - rschalek
+      - ymeirovitch
+      - zlin
+      - jadhinarta
+      - dberger
+      - ywu
+      - tfang
+      - emeral
+      - sasraf
+      - hploegh
+      - hpfister
+      - dwei
+      - vjain
+      - jtrimmer
+      - jlichtman
+    link: "[paper](https://doi.org/10.1101/2023.05.20.540091) [under review]"
+    image: static/vesicle.jpg
+    video: static/vesicle.mp4
+  -
+    name: "RibSeg v2: A Large-scale Benchmark for Rib Labeling and Anatomical Centerline Extraction"
+    authors:
+      - ljin
+      - sgu
+      - dwei
+      - jadhinarta
+      - kkuang
+      - yzhang
+      - hpfister
+      - bni
+      - jyang
+      - mli
+    venue: IEEE Transactions on Medical Imaging, 2023
+    link: "[paper](https://arxiv.org/abs/2210.09309) / [repo](https://github.com/m3dv/ribseg)"
+    image: static/ribseg.png
+    image_bg: static/ribseg_skeleton.png
+  -
+    name: "Light storage and thermal-assisted switching of SrAl2O4:Eu2+,Dy3+"
+    authors:
+      - jadhinarta
+      - ejobiliong
+      - mshiddiq
+      - huranus
+      - esteven
+    venue: Journal of Nonlinear Optical Physics & Materials, 2019
+    link: "[paper](https://doi.org/10.1142/S0218863519500425) / [poster](static/ismoa_poster.pdf)"
+    image: static/ismoa.png
+    image_bg: static/ismoa_bg.png
+
+categories:
+  -
+    name: Biomedical
+    projects:
+      -
+        name: GrandChallenge dockerization
+        link: "[SNEMI3D](https://github.com/PytorchConnectomics/snemi3d-gc) / [AxonEM](https://github.com/PytorchConnectomics/AxonEM-challenge) / [RNR-EXM](https://github.com/ebesier/rnr-exm)"
+        desc: "Ported evaluation scripts from connectomics challenges to the GrandChallenge platform"
+        image: static/grandchallenge.png
+      -
+        name: ChunkPipeline
+        link: "[repo](https://github.com/jasonkena/ChunkPipeline)"
+        desc: "Created a Dask-powered framework for orchestrating data processing pipelines on massive-scale connectomics datasets; ported 3D algorithms ([connected components](https://github.com/seung-lab/connected-components-3d), [euclidean distance transform](https://github.com/seung-lab/euclidean-distance-transform-3d/), and [TEASAR skeletonization](https://github.com/seung-lab/kimimaro)) from the Seung Lab to be chunking-compatible, allowing for efficient utilization of the [Boston College Linux Cluster](https://www.bc.edu/bc-web/offices/its/services/research-services/linux-cluster.html)"
+        image: static/chunkpipeline.png
+  -
+    name: Physical Computing
+    projects:
+      -
+        name: "SonicSniffer"
+        link: "[repo](https://github.com/BCMIG/SonicSniffer)"
+        desc: "A weekend project: attempted to reproduce [A Practical Deep Learning-Based Acoustic Side Channel Attack on Keyboards](https://arxiv.org/abs/2308.01074) (spectrogram to keystrokes) without hand-crafted feature extraction"
+        image: static/sonicsniffer.png
+        image_bg: static/sonicsniffer_bg.png
+
+      -
+        name: "Mycelium culture contamination detection (2020)"
+        link: "[patent application](static/patent.pdf) (pending)"
+        desc: "Developed and deployed algorithms for fungus contamination detection, used for the automated applicaton of hydrogen peroxide in the development of synthetic leather"
+        image: static/mycelium.png
+      -
+        name: "Palm oil fresh-fruit-bunch grading (2020)"
+        desc: "Standardized grading of palm oil fruit through XGBoost-based classification of color-based features for industrial use"
+        image: static/palm_fruit.png
+      -
+        name: Black soldier fly instance segmentation (2020)
+        desc: "Built an Arduino-based automated data collection system for larvae, used Mask R-CNN and YOLACT++ for instance segmentation; adapted [DCNv2](https://github.com/jasonkena/yolact/tree/amp) to be compatible with NVIDIA's APEX for memory-efficient training"
+        image: static/larvae.png
+        video: static/larvae.webm
+      -
+        name: "Vision-enabled robotic arm (2019)"
+        link: "[writeup](static/Jason_Ken_Adhinarta_Final_Math_IA.pdf)"
+        desc: "Rigged and programmed a 6-DOF arm augmented with (simple) object detection capabilities. Presented at Indonesia Science Expo 2019"
+        image: static/inverse_kinematics.png
+        image_bg: static/inverse_kinematics_bg.png
+  -
+    name: Computational Modelling
+    projects:
+      -
+        name: Moiré (2021)
+        link: "[writeup](static/Jason_Ken_Adhinarta_Physics_IA.pdf) / [repo](https://github.com/jasonkena/moire)"
+        desc: "Angle dependent Ohmic-resistance modelling of twisted-bilayer graphene via sparse linear solvers"
+        image: static/moire.jpg
+        video: static/moire.mp4
+      -
+        name: Reversing nearness (2020)
+        link: "[writeup](static/reversing_nearness.pdf) / [repo](https://github.com/jasonkena/toroid)"
+        desc: "Gradient descent based solution to [Al Zimmermann's discrete optimization contest](http://azspcs.com/Contest/Nearness)"
+        image: static/toroid.png
+        video: static/toroid.mp4
+  -
+    name: Miscellaneous
+    projects:
+      -
+        name: Keyboards
+        desc: I am a huge proponent of split-ortholinear keyboards. I currently run [Colemak-DH](https://colemakmods.github.io/mod-dh/) with [Achordion](https://getreuer.info/posts/keyboards/achordion/index.html) on a [Arch. dux](https://github.com/tapioki/cephalopoda/tree/main/Architeuthis%20dux)
+        image: static/keyboards.jpg
+      -
+        name: SimpleMMO PVP Tool (2021)
+        link: "[site](https://revogen.xyz/) / [repo](https://github.com/jasonkena/smmo_pvp_tool)"
+        desc: Developed a web-based tool to allow [SimpleMMO](https://web.simple-mmo.com/) players to aggregate results of API endpoint "mining". Built using a Flask/PostgreSQL/Bootstrap stack
+        image: static/smmo.png
+        video: static/smmo.mp4
