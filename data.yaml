@@ -194,15 +194,8 @@ categories:
         desc: "Created a Dask-powered framework for orchestrating data processing pipelines on massive-scale connectomics datasets; ported 3D algorithms ([connected components](https://github.com/seung-lab/connected-components-3d), [euclidean distance transform](https://github.com/seung-lab/euclidean-distance-transform-3d/), and [TEASAR skeletonization](https://github.com/seung-lab/kimimaro)) from the Seung Lab to be chunking-compatible, allowing for efficient utilization of the [Boston College Linux Cluster](https://www.bc.edu/bc-web/offices/its/services/research-services/linux-cluster.html)"
         image: static/chunkpipeline.png
   -
-    name: Physical Computing
+    name: AI4Manufacturing
     projects:
-      -
-        name: "SonicSniffer"
-        link: "[repo](https://github.com/BCMIG/SonicSniffer)"
-        desc: "A weekend project: attempted to reproduce [A Practical Deep Learning-Based Acoustic Side Channel Attack on Keyboards](https://arxiv.org/abs/2308.01074) (spectrogram to keystrokes) without hand-crafted feature extraction"
-        image: static/sonicsniffer.png
-        image_bg: static/sonicsniffer_bg.png
-
       -
         name: "Mycelium culture contamination detection (2020)"
         link: "[patent application](static/patent.pdf) (pending)"
@@ -214,18 +207,24 @@ categories:
         image: static/palm_fruit.png
       -
         name: Black soldier fly instance segmentation (2020)
-        desc: "Built an Arduino-based automated data collection system for larvae, used Mask R-CNN and YOLACT++ for instance segmentation; adapted [DCNv2](https://github.com/jasonkena/yolact/tree/amp) to be compatible with NVIDIA's APEX for memory-efficient training"
+        desc: "Built an Arduino-based automated data collection system for larvae, used Mask R-CNN and YOLACT++ for instance segmentation; adapted [DCNv2](https://github.com/jasonkena/yolact/tree/amp) to be compatible with NVIDIA's APEX for memory-efficient training. Part of a larger project to utilize BSF larvae for waste management"
         image: static/larvae.png
         video: static/larvae.webm
-      -
-        name: "Vision-enabled robotic arm (2019)"
-        link: "[writeup](static/Jason_Ken_Adhinarta_Final_Math_IA.pdf)"
-        desc: "Rigged and programmed a 6-DOF arm augmented with (simple) object detection capabilities. Presented at Indonesia Science Expo 2019"
-        image: static/inverse_kinematics.png
-        image_bg: static/inverse_kinematics_bg.png
   -
-    name: Computational Modelling
+    name: Misc.
     projects:
+      -
+        name: "SonicSniffer"
+        link: "[repo](https://github.com/BCMIG/SonicSniffer)"
+        desc: "A weekend project: attempted to reproduce [A Practical Deep Learning-Based Acoustic Side Channel Attack on Keyboards](https://arxiv.org/abs/2308.01074) (spectrogram to keystrokes) without hand-crafted feature extraction"
+        image: static/sonicsniffer.png
+        image_bg: static/sonicsniffer_bg.png
+      -
+        name: SimpleMMO PVP Tool (2021)
+        link: "[site](https://revogen.xyz/) / [repo](https://github.com/jasonkena/smmo_pvp_tool)"
+        desc: Developed a web-based tool to allow [SimpleMMO](https://web.simple-mmo.com/) players to aggregate results of API endpoint "mining". Built using a Flask/PostgreSQL/Bootstrap stack
+        image: static/smmo.png
+        video: static/smmo.mp4
       -
         name: Moiré (2021)
         link: "[writeup](static/Jason_Ken_Adhinarta_Physics_IA.pdf) / [repo](https://github.com/jasonkena/moire)"
@@ -238,16 +237,13 @@ categories:
         desc: "Gradient descent based solution to [Al Zimmermann's discrete optimization contest](http://azspcs.com/Contest/Nearness)"
         image: static/toroid.png
         video: static/toroid.mp4
-  -
-    name: Miscellaneous
-    projects:
+      -
+        name: "Vision-enabled robotic arm (2019)"
+        link: "[writeup](static/Jason_Ken_Adhinarta_Final_Math_IA.pdf)"
+        desc: "Rigged and programmed a 6-DOF arm augmented with (simple) object detection capabilities. Presented at Indonesia Science Expo 2019"
+        image: static/inverse_kinematics.png
+        image_bg: static/inverse_kinematics_bg.png
       -
         name: Keyboards
         desc: I am a huge proponent of split-ortholinear keyboards. I currently run [Colemak-DH](https://colemakmods.github.io/mod-dh/) with [Achordion](https://getreuer.info/posts/keyboards/achordion/index.html) on an [Arch. dux](https://github.com/tapioki/cephalopoda/tree/main/Architeuthis%20dux)
         image: static/keyboards.jpg
-      -
-        name: SimpleMMO PVP Tool (2021)
-        link: "[site](https://revogen.xyz/) / [repo](https://github.com/jasonkena/smmo_pvp_tool)"
-        desc: Developed a web-based tool to allow [SimpleMMO](https://web.simple-mmo.com/) players to aggregate results of API endpoint "mining". Built using a Flask/PostgreSQL/Bootstrap stack
-        image: static/smmo.png
-        video: static/smmo.mp4

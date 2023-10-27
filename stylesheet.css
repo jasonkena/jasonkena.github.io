@@ -137,8 +137,9 @@ span.highlight {
 
 /* Style for active category links */
 .category-link.active {
-  color: blue; /* You can change the style as per your preference */
+  /* color: blue; /* You can change the style as per your preference */ */
   font-weight: bold;
+  border-bottom: 1px solid #1772d0;
 }
 
 /* Style for inactive category links */
