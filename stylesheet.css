@@ -159,3 +159,8 @@ span.highlight {
   display: none;
 }
 
+@media (max-width: 550px) {                  
+   .content-to-hide {
+      display: none;
+   }
+}

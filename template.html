@@ -58,7 +58,7 @@
                       <a href="{{ github }}">Github</a>
                     </p>
                   </td>
-                  <td style="padding: 2.5%; width: 30%; max-width: 30%">
+                  <td style="padding: 2.5%; width: 30%; max-width: 30%" class="content-to-hide">
                     <img
                       style="width: 100%; max-width: 100%"
                       alt="profile photo"
@@ -103,7 +103,7 @@
                 {% else %}
                 <tr>
                 {% endif %}
-                  <td style="padding: 20px; width: 25%; vertical-align: middle">
+                  <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
                   {% if publication.video or publication.image_bg %}
                     <div class="one">
                       <div class="two" id="{{ publication.hash }}_image">
@@ -236,7 +236,7 @@
                 {% else %}
                 <tr>
                 {% endif %}
-                  <td style="padding: 20px; width: 25%; vertical-align: middle">
+                  <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
                   {% if project.video or project.image_bg %}
                     <div class="one">
                       <div class="two" id="{{ project.hash }}_image">
