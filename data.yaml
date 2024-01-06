@@ -163,7 +163,7 @@ publications:
       - jyang
       - mli
     venue: IEEE Transactions on Medical Imaging, 2023
-    link: "[paper](https://arxiv.org/abs/2210.09309) / [repo](https://github.com/m3dv/ribseg)"
+    link: "[paper](https://doi.org/10.1109/TMI.2023.3313627) / [repo](https://github.com/m3dv/ribseg)"
     image: static/ribseg.png
     image_bg: static/ribseg_skeleton.png
   -
