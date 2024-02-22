@@ -106,9 +106,39 @@ people:
   -
     name: mli
     link: "[Ming Li](https://www.researchgate.net/profile/Ming-Li-50)"
+  -
+    name: jwan
+    link: "[Jia Wan](https://jia-wan.github.io/)"
+  -
+    name: wli
+    link: "[Wanhua Li](https://li-wanhua.github.io/)"
+  -
+    name: abanerjee
+    link: "[Atmadeep Banerjee](https://atom-101.github.io/)"
+  -
+    name: esjostedt
+    link: "[Evelina Sjostedt](https://lichtmanlab.fas.harvard.edu/people/evelina-sjostedt)"
+  -
+    name: jwu
+    link: "Jingpeng Wu"
+
 
 
 publications:
+  - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
+    authors:
+      - jwan
+      - wli
+      - abanerjee
+      - jadhinarta
+      - esjostedt
+      - jwu
+      - jlichtman
+      - hpfister
+      - dwei
+    link: "[preprint](https://arxiv.org/abs/2401.13961v1)"
+    image: static/trisam.jpg
+    video: static/trisam.mp4
   -
     name: "FreSeg: Frenet-Frame-based Part Segmentation for 3D Curvilinear Structures"
     authors:
@@ -146,7 +176,7 @@ publications:
       - vjain
       - jtrimmer
       - jlichtman
-    link: "[paper](https://doi.org/10.1101/2023.05.20.540091) [under review]"
+    link: "[preprint](https://doi.org/10.1101/2023.05.20.540091) [under review]"
     image: static/vesicle.jpg
     video: static/vesicle.mp4
   -
@@ -214,7 +244,7 @@ categories:
     name: Misc.
     projects:
       -
-        name: "SonicSniffer"
+        name: "SonicSniffer (2023)"
         link: "[repo](https://github.com/BCMIG/SonicSniffer)"
         desc: "A weekend project: attempted to reproduce [A Practical Deep Learning-Based Acoustic Side Channel Attack on Keyboards](https://arxiv.org/abs/2308.01074) (spectrogram to keystrokes) without hand-crafted feature extraction"
         image: static/sonicsniffer.png
