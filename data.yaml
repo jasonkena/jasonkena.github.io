@@ -2,7 +2,7 @@ name: Jason Ken Adhinarta
 email: jason.adhinarta@bc.edu
 cv: static/Jason_Adhinarta_CV.pdf
 github: https://github.com/jasonkena/
-mugshot: static/mugshot.png
+mugshot: static/avatar.webp
 
 bio: |
   I am a fourth-year undergraduate at [Boston College](https://www.bc.edu/) studying Computer Science and Mathematics. I work as a research assistant at [Prof. Donglai Wei's Computer Vision lab](https://donglaiw.github.io/), focusing on the area of [connectomics](https://connectomics.readthedocs.io/en/latest/).
