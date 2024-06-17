@@ -121,8 +121,15 @@ people:
   -
     name: jwu
     link: "Jingpeng Wu"
-
-
+  -
+    name: esedykh
+    link: "[Ekaterina Sedykh](https://scholar.google.de/citations?user=dw5bcUwAAAAJ)"
+  -
+    name: hle
+    link: "[Hieu Le](https://hieulem.github.io/)"
+  -
+    name: pfua
+    link: "[Pascal Fua](https://people.epfl.ch/pascal.fua/bio)"
 
 publications:
   - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
@@ -155,6 +162,18 @@ publications:
     image: static/dendrite.jpg
     video: static/dendrite.mp4
   -
+    name: Generating Anatomically Accurate Heart Structures via Neural Implicit Fields
+    authors:
+      - jyang
+      - esedykh
+      - jadhinarta
+      - hle
+      - pfua
+    venue: MICCAI 2024
+    image: static/imheart_source.png
+    image_bg: static/imheart_repaired.png
+
+  -
     name: Multiplexed Volumetric CLEM enabled by antibody derivatives provides new insights into the cytology of the mouse cerebellar cortex
     authors:
       - xhan
@@ -176,7 +195,8 @@ publications:
       - vjain
       - jtrimmer
       - jlichtman
-    link: "[preprint](https://doi.org/10.1101/2023.05.20.540091) [under review]"
+    venue: Nature Communications 2024
+    link: "[preprint](https://doi.org/10.1101/2023.05.20.540091)"
     image: static/vesicle.jpg
     video: static/vesicle.mp4
   -
@@ -192,7 +212,7 @@ publications:
       - bni
       - jyang
       - mli
-    venue: IEEE Transactions on Medical Imaging, 2023
+    venue: TMI 2023
     link: "[paper](https://doi.org/10.1109/TMI.2023.3313627) / [repo](https://github.com/m3dv/ribseg)"
     image: static/ribseg.png
     image_bg: static/ribseg_skeleton.png
@@ -204,7 +224,7 @@ publications:
       - mshiddiq
       - huranus
       - esteven
-    venue: Journal of Nonlinear Optical Physics & Materials, 2019
+    venue: JNOPM 2019
     link: "[paper](https://doi.org/10.1142/S0218863519500425) / [poster](static/ismoa_poster.pdf)"
     image: static/ismoa.png
     image_bg: static/ismoa_bg.png
