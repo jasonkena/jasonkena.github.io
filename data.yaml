@@ -104,7 +104,7 @@ publications:
       - jlichtman
       - hpfister
       - dwei
-    link: "[preprint](https://arxiv.org/abs/2401.13961v1)"
+    link: "[preprint](https://arxiv.org/abs/2401.13961v3)"
     image: static/trisam.jpg
     video: static/trisam.mp4
   - name: "FreSeg: Frenet-Frame-based Part Segmentation for 3D Curvilinear Structures"
@@ -154,7 +154,7 @@ publications:
       - jtrimmer
       - jlichtman
     venue: Nature Communications 2024
-    link: "[preprint](https://doi.org/10.1101/2023.05.20.540091)"
+    link: "[paper](https://doi.org/10.1038/s41467-024-50411-z)"
     image: static/vesicle.jpg
     video: static/vesicle.mp4
   - name: "RibSeg v2: A Large-scale Benchmark for Rib Labeling and Anatomical Centerline Extraction"
