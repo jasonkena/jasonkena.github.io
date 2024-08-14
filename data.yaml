@@ -129,6 +129,7 @@ publications:
       - hle
       - pfua
     venue: MICCAI 2024
+    link: "[paper](https://infoscience.epfl.ch/entities/publication/f5e58250-8670-465d-a539-d5db1282d5ef)"
     image: static/imheart_source.png
     image_bg: static/imheart_repaired.png
 
@@ -154,7 +155,7 @@ publications:
       - jtrimmer
       - jlichtman
     venue: Nature Communications 2024
-    link: "[paper](https://doi.org/10.1038/s41467-024-50411-z)"
+    link: "[paper](https://doi.org/10.1038/s41467-024-50411-z) / [article](https://www.mcb.harvard.edu/department/news/lichtman-lab-pairs-immunolabeling-with-connectomic-data/)"
     image: static/vesicle.jpg
     video: static/vesicle.mp4
   - name: "RibSeg v2: A Large-scale Benchmark for Rib Labeling and Anatomical Centerline Extraction"
