@@ -100,14 +100,14 @@ publications:
     authors:
       - jwan
       - wli
-      - abanerjee
       - jadhinarta
+      - abanerjee
       - esjostedt
       - jwu
       - jlichtman
       - hpfister
       - dwei
-    link: "[preprint](https://arxiv.org/abs/2401.13961v3)"
+    link: "[preprint](https://arxiv.org/abs/2401.13961v4)"
     image: static/trisam.jpg
     video: static/trisam.mp4
   - name: "Frenet-Serret Frame-based Decomposition for Part Segmentation of 3D Curvilinear Structures"
