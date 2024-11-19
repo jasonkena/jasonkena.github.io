@@ -92,6 +92,8 @@ people:
     link: "[Hieu Le](https://hieulem.github.io/)"
   - name: pfua
     link: "[Pascal Fua](https://people.epfl.ch/pascal.fua/bio)"
+  - name: wyin
+    link: "[Wenjie Yin](https://www.linkedin.com/in/kellywyin/)"
 
 publications:
   - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
@@ -108,13 +110,14 @@ publications:
     link: "[preprint](https://arxiv.org/abs/2401.13961v3)"
     image: static/trisam.jpg
     video: static/trisam.mp4
-  - name: "FreSeg: Frenet-Frame-based Part Segmentation for 3D Curvilinear Structures"
+  - name: "Frenet-Serret Frame-based Decomposition for Part Segmentation of 3D Curvilinear Structures"
     authors:
       - sgu
       - jadhinarta
       - mbessmeltsev
       - jyang
       - yzhang
+      - wyin
       - dberger
       - jlichtman
       - hpfister
