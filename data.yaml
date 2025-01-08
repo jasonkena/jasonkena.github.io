@@ -94,22 +94,47 @@ people:
     link: "[Pascal Fua](https://people.epfl.ch/pascal.fua/bio)"
   - name: wyin
     link: "[Wenjie Yin](https://www.linkedin.com/in/kellywyin/)"
+  - name: jdong
+    link: "[Jizheng Dong](https://lengyuner.github.io/)"
+  - name: the
+    link: "[Tianxiao He](https://tianxiaohe.netlify.app/)"
+  - name: jhuang
+    link: "[Junxiang Huang](https://cos.northeastern.edu/people/junxiang-huang/)"
+  - name: dsprague
+    link: "[Daniel Sprague](https://www.linkedin.com/in/daniel-sprague-yutaka)"
+  - name: hlee
+    link: "[Hyun Jee Lee](https://scholar.google.co.kr/citations?user=WmeWwJUAAAAJ)"
+  - name: zyu
+    link: "[Zikai Yu](https://bioengineering.gatech.edu/user/1572)"
+  - name: hlu
+    link: "[Hang Lu](https://www.chbe.gatech.edu/directory/person/hang-lu)"
+  - name: eyemini
+    link: "[Eviatar Yemini](https://www.yeminilab.com/team)"
+  - name: skato
+    link: "[Saul Kato](https://neurograd.ucsf.edu/people/saul-kato-phd)"
+  - name: evarol
+    link: "[Erdem Varol](https://engineering.nyu.edu/faculty/erdem-varol)"
+
 
 publications:
-  - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
+  - name: "WormID-Benchmark: Extracting Whole-Brain Neural Dynamics of C. elegans At the Neuron Resolution"
     authors:
+      - jadhinarta*
+      - jdong*
+      - the*
+      - jhuang*
+      - dsprague*
       - jwan
-      - wli
-      - jadhinarta
-      - abanerjee
-      - esjostedt
-      - jwu
-      - jlichtman
-      - hpfister
+      - hlee
+      - zyu
+      - hlu
+      - eyemini
+      - skato
+      - evarol
       - dwei
-    link: "[preprint](https://arxiv.org/abs/2401.13961v4)"
-    image: static/trisam.jpg
-    video: static/trisam.mp4
+    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.01.06.631621v2)"
+    image: static/calcium_image.png
+    image_bg: static/calcium_dynamics.png
   - name: "Frenet-Serret Frame-based Decomposition for Part Segmentation of 3D Curvilinear Structures"
     authors:
       - sgu
@@ -125,6 +150,20 @@ publications:
     link: "[preprint](https://arxiv.org/abs/2404.14435)"
     image: static/dendrite.jpg
     video: static/dendrite.mp4
+  - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
+    authors:
+      - jwan
+      - wli
+      - jadhinarta
+      - abanerjee
+      - esjostedt
+      - jwu
+      - jlichtman
+      - hpfister
+      - dwei
+    link: "[preprint](https://arxiv.org/abs/2401.13961v4)"
+    image: static/trisam.jpg
+    video: static/trisam.mp4
   - name: Generating Anatomically Accurate Heart Structures via Neural Implicit Fields
     authors:
       - jyang

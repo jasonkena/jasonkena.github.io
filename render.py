@@ -13,15 +13,21 @@ def template_authors(data):
 
     for publication in data["publications"]:
         publication["authors"] = ", ".join(
-            [people[author] for author in publication["authors"]]
+            [
+                (people[author] if "*" not in author else people[author[:-1]] + "\\*")
+                for author in publication["authors"]
+            ]
         )
+
+
 def get_hash(name):
     hasher = hashlib.sha1(name.encode("utf-8"))
     hash = base64.urlsafe_b64encode(hasher.digest()[:5])
     hash = [x for x in hash.decode("utf-8") if x.isalnum()]
     hash = "".join(hash)
-    hash = "_" + hash # since function names can't start with a number
+    hash = "_" + hash  # since function names can't start with a number
     return hash
+
 
 def template_hash(data):
     hashes = set()
@@ -39,12 +45,11 @@ def template_hash(data):
             project["hash"] = hash
 
 
-
 data = yaml.load(open("data.yaml"), Loader=yaml.FullLoader)
 template_authors(data)
 template_hash(data)
 
-env = Environment(extensions=['jinja_markdown.MarkdownExtension'])
+env = Environment(extensions=["jinja_markdown.MarkdownExtension"])
 
 template = env.from_string(
     open("template.html").read(),
