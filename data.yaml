@@ -132,7 +132,7 @@ publications:
       - skato
       - evarol
       - dwei
-    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.01.06.631621v2)"
+    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.01.06.631621v3)"
     image: static/calcium_image.png
     image_bg: static/calcium_dynamics.png
   - name: "Frenet-Serret Frame-based Decomposition for Part Segmentation of 3D Curvilinear Structures"
