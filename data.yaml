@@ -162,7 +162,7 @@ publications:
       - hpfister
       - dwei
     venue: JBHI 2025
-    link: "[preprint](https://arxiv.org/abs/2401.13961v4)"
+    link: "[paper](https://doi.org/10.1109/JBHI.2025.3577625) / [website](https://jia-wan.github.io/bvem)"
     image: static/trisam.jpg
     video: static/trisam.mp4
   - name: Generating Anatomically Accurate Heart Structures via Neural Implicit Fields
