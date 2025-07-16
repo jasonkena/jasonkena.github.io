@@ -148,7 +148,7 @@ publications:
       - hpfister
       - dwei
     venue: TMI 2025
-    link: "[paper](https://arxiv.org/abs/2404.14435) / [repo](https://github.com/VCG/FFD4DenSpineEM)"
+    link: "[paper](https://doi.org/10.1109/TMI.2025.3589543) / [repo](https://github.com/VCG/FFD4DenSpineEM)"
     image: static/dendrite.jpg
     video: static/dendrite.mp4
   - name: "TriSAM: Tri-Plane SAM for zero-shot cortical blood vessel segmentation in VEM images"
