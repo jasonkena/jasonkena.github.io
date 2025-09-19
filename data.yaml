@@ -205,8 +205,8 @@ publications:
     video: static/vesicle.mp4
   - name: "RibSeg v2: A Large-scale Benchmark for Rib Labeling and Anatomical Centerline Extraction"
     authors:
-      - ljin
-      - sgu
+      - ljin*
+      - sgu*
       - dwei
       - jadhinarta
       - kkuang
