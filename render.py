@@ -1,3 +1,13 @@
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "pyyaml",
+#     "jinja2",
+#     "jinja-markdown",
+# ]
+# ///
+
 import yaml
 from jinja2 import Environment
 import base64

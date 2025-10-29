@@ -114,10 +114,49 @@ people:
     link: "[Saul Kato](https://neurograd.ucsf.edu/people/saul-kato-phd)"
   - name: evarol
     link: "[Erdem Varol](https://engineering.nyu.edu/faculty/erdem-varol)"
+  - name: szhang
+    link: "[Shulin Zhang](https://www.linkedin.com/in/shulin-zhang-316264244/)"
+  - name: nofer
+    link: "[Netanel Ofer](https://scholar.google.com/citations?user=7t3-mtkAAAAJ&hl=en)"
+  - name: cdupre
+    link: "[Christophe Dupre](https://www.linkedin.com/in/christophe-dupre-914a9a47/)"
+  - name: xwang
+    link: "[Xueying Wang](https://www.snowxwang.com/)"
+  - name: mlin
+    link: "[Michael Lin](https://linok-bc.github.io/)"
+  - name: mroth
+    link: "[Micaela Roth](https://www.linkedin.com/in/micaela-roth/)"
+  - name: agohain
+    link: "[Adam Gohain](https://akgohain.github.io/gohaina-website/)"
+  - name: yfan
+    link: "[Yutian Fan](https://www.linkedin.com/in/yutian-fan-118837286/)"
+  - name: ryuste
+    link: "[Rafael Yuste](https://blogs.cuit.columbia.edu/rmy5/)"
 
 
 publications:
-  - name: "WormID-Benchmark: Extracting Whole-Brain Neural Dynamics of C. elegans At the Neuron Resolution"
+  - name: "Ultrastructural reconstruction of the endodermal nerve net of _Hydra vulgaris_"
+    authors:
+      - szhang
+      - nofer
+      - cdupre
+      - xwang
+      - rschalek
+      - ywu
+      - mlin
+      - mroth
+      - jadhinarta
+      - agohain
+      - yfan
+      - wyin
+      - dwei
+      - jlichtman
+      - ryuste
+    venue: Current Biology 2025
+    link: "[paper](https://doi.org/10.1016/j.cub.2025.10.001)"
+    image: static/hydra_a.png
+    image_bg: static/hydra_b.png
+  - name: "WormID-Benchmark: Extracting Whole-Brain Neural Dynamics of _C. elegans_ At the Neuron Resolution"
     authors:
       - jadhinarta*
       - jdong*
