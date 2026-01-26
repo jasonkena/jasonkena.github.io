@@ -132,9 +132,77 @@ people:
     link: "[Yutian Fan](https://www.linkedin.com/in/yutian-fan-118837286/)"
   - name: ryuste
     link: "[Rafael Yuste](https://blogs.cuit.columbia.edu/rmy5/)"
-
+  - name: lzheng
+    link: "[Lirong Zheng](https://medresearch.umich.edu/profile/lirong-zheng-phd)"
+  - name: dshi
+    link: "[Dongqing Shi](https://medschool.umich.edu/profile/dongqing-shi)"
+  - name: yyan
+    link: "[Yixiao Yan](https://medschool.umich.edu/profile/yixiao-yan)"
+  - name: bzhou
+    link: "[Bingxin Zhou](https://scholar.google.com/citations?hl=en&user=OsvArmcAAAAJ)"
+  - name: jlim
+    link: "[Jormay Lim](https://medschool.umich.edu/profile/jormay-lim)"
+  - name: yhou
+    link: "[Yongjie Hou](https://scholar.google.com/citations?user=1NE0GXQAAAAJ)"
+  - name: ban
+    link: "[Bobae An](https://scholar.google.com/citations?user=j42hDjoAAAAJ)"
+  - name: bko
+    link: "[BumJin Ko](https://scholar.google.com/citations?hl=en&user=OcHi_F4AAAAJ)"
+  - name: wjoesten
+    link: "[William C. Joesten](https://www.linkedin.com/in/william-joesten/)"
+  - name: mgautam
+    link: "[Mehul Gautam](https://www.linkedin.com/in/mehul-gautam-124696236/)"
+  - name: ehuez
+    link: "[Elie Huez](https://medschool.umich.edu/profile/elie-huez)"
+  - name: ekim
+    link: "[Eung Chang Kim](https://scholar.google.com/citations?user=_LgspRsAAAAJ)"
+  - name: eklyder
+    link: "[Emily G. Klyder](https://www.spatialbiodynamics.org/people)"
+  - name: bchang
+    link: "[Boxuan Chang](https://scholar.google.com/citations?user=r57D1GYAAAAJ)"
+  - name: spitchiaya
+    link: "[Sethuramasundaram Pitchiaya](https://sethupitchiaya.org/sethu-pitchiaya-bio/)"
+  - name: mroberts
+    link: "[Michael Roberts](https://medschool.umich.edu/profile/1898/michael-roberts)"
+  - name: dcai
+    link: "[Denise J. Cai](https://www.denisecailab.com/denise)"
+  - name: eboyden
+    link: "[Edward S. Boyden](https://be.mit.edu/faculty/ed-boyden/)"
+  - name: plio
+    link: "[Pietro Liò](https://www.cl.cam.ac.uk/~pl219/)"
+  - name: clinghu
+    link: "[Changyang Linghu](https://bme.umich.edu/people/linghu-changyang/)"
 
 publications:
+  - name: "Scalable and multiplexed recorders of gene regulation dynamics across weeks"
+    authors:
+      - lzheng*
+      - dshi*
+      - yyan*
+      - bzhou
+      - jlim
+      - yhou
+      - ban
+      - jadhinarta
+      - mlin
+      - bko
+      - wjoesten
+      - mgautam
+      - ehuez
+      - ekim
+      - eklyder
+      - bchang
+      - spitchiaya
+      - mroberts
+      - dcai
+      - eboyden
+      - dwei
+      - plio
+      - clinghu
+    venue: Nature 2026
+    image: static/barcode.png
+    image_bg: static/barcode_bg.png
+    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.05.10.653182v1)"
   - name: "Ultrastructural reconstruction of the endodermal nerve net of _Hydra vulgaris_"
     authors:
       - szhang
@@ -273,14 +341,14 @@ publications:
 categories:
   - name: Biomedical
     projects:
-      - name: GrandChallenge dockerization
-        link: "[SNEMI3D](https://github.com/PytorchConnectomics/snemi3d-gc) / [AxonEM](https://github.com/PytorchConnectomics/AxonEM-challenge) / [RNR-EXM](https://github.com/ebesier/rnr-exm)"
-        desc: "Ported evaluation scripts from connectomics challenges to the GrandChallenge platform"
-        image: static/grandchallenge.png
-      - name: ChunkPipeline
+      - name: ChunkPipeline (2024)
         link: "[repo](https://github.com/jasonkena/ChunkPipeline)"
         desc: "Created a Dask-powered framework for orchestrating data processing pipelines on massive-scale connectomics datasets; ported 3D algorithms ([connected components](https://github.com/seung-lab/connected-components-3d), [euclidean distance transform](https://github.com/seung-lab/euclidean-distance-transform-3d/), and [TEASAR skeletonization](https://github.com/seung-lab/kimimaro)) from the Seung Lab to be chunking-compatible, allowing for efficient utilization of the [Boston College Linux Cluster](https://www.bc.edu/bc-web/offices/its/services/research-services/linux-cluster.html)"
         image: static/chunkpipeline.png
+      - name: GrandChallenge dockerization (2023)
+        link: "[SNEMI3D](https://github.com/PytorchConnectomics/snemi3d-gc) / [AxonEM](https://github.com/PytorchConnectomics/AxonEM-challenge) / [RNR-EXM](https://github.com/ebesier/rnr-exm)"
+        desc: "Ported evaluation scripts from connectomics challenges to the GrandChallenge platform"
+        image: static/grandchallenge.png
   - name: AI4Manufacturing
     projects:
       - name: "Mycelium culture contamination detection (2020)"

@@ -97,6 +97,51 @@
               <tbody>
                 
                 
+                <tr onmouseout="_9ES9GQ_stop()" onmouseover="_9ES9GQ_start()">
+                
+                  <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
+                  
+                    <div class="one">
+                      <div class="two" id="_9ES9GQ_image">
+                        
+                        <img
+                          src="static/barcode_bg.png"
+                          width="160"
+                        />
+                        
+                      </div>
+                      <img
+                        src="static/barcode.png"
+                        width="160"
+                      />
+                    </div>
+                    <script type="text/javascript">
+                      function _9ES9GQ_start() {
+                        let elem = document.getElementById(
+                          "_9ES9GQ_image",
+                        );
+                        elem.style.opacity = "1";
+                      }
+
+                      function _9ES9GQ_stop() {
+                        let elem = document.getElementById(
+                          "_9ES9GQ_image",
+                        );
+                        elem.style.opacity = "0";
+                      }
+                      _9ES9GQ_stop();
+                    </script>
+                    
+                  </td>
+                  <td style="padding: 20px; width: 75%; vertical-align: middle">
+
+<p><strong>Scalable and multiplexed recorders of gene regulation dynamics across weeks</strong><br>
+<span class="authors"><a href="https://medresearch.umich.edu/profile/lirong-zheng-phd">Lirong Zheng</a>*, <a href="https://medschool.umich.edu/profile/dongqing-shi">Dongqing Shi</a>*, <a href="https://medschool.umich.edu/profile/yixiao-yan">Yixiao Yan</a>*, <a href="https://scholar.google.com/citations?hl=en&amp;user=OsvArmcAAAAJ">Bingxin Zhou</a>, <a href="https://medschool.umich.edu/profile/jormay-lim">Jormay Lim</a>, <a href="https://scholar.google.com/citations?user=1NE0GXQAAAAJ">Yongjie Hou</a>, <a href="https://scholar.google.com/citations?user=j42hDjoAAAAJ">Bobae An</a>, <strong>Jason K. Adhinarta</strong>, <a href="https://linok-bc.github.io/">Michael Lin</a>, <a href="https://scholar.google.com/citations?hl=en&amp;user=OcHi_F4AAAAJ">BumJin Ko</a>, <a href="https://www.linkedin.com/in/william-joesten/">William C. Joesten</a>, <a href="https://www.linkedin.com/in/mehul-gautam-124696236/">Mehul Gautam</a>, <a href="https://medschool.umich.edu/profile/elie-huez">Elie Huez</a>, <a href="https://scholar.google.com/citations?user=_LgspRsAAAAJ">Eung Chang Kim</a>, <a href="https://www.spatialbiodynamics.org/people">Emily G. Klyder</a>, <a href="https://scholar.google.com/citations?user=r57D1GYAAAAJ">Boxuan Chang</a>, <a href="https://sethupitchiaya.org/sethu-pitchiaya-bio/">Sethuramasundaram Pitchiaya</a>, <a href="https://medschool.umich.edu/profile/1898/michael-roberts">Michael Roberts</a>, <a href="https://www.denisecailab.com/denise">Denise J. Cai</a>, <a href="https://be.mit.edu/faculty/ed-boyden/">Edward S. Boyden</a>, <a href="https://donglaiw.github.io/">Donglai Wei</a>, <a href="https://www.cl.cam.ac.uk/~pl219/">Pietro Liò</a>, <a href="https://bme.umich.edu/people/linghu-changyang/">Changyang Linghu</a></span>
+<br><em>Nature 2026</em><br><a href="https://www.biorxiv.org/content/10.1101/2025.05.10.653182v1">preprint</a></p>
+                  </td>
+                </tr>
+                
+                
                 <tr onmouseout="_NrrJ0f0_stop()" onmouseover="_NrrJ0f0_start()">
                 
                   <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
@@ -546,16 +591,16 @@
                   <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
                   
                     <img
-                      src="static/grandchallenge.png"
+                      src="static/chunkpipeline.png"
                       width="160"
                     />
                     
                   </td>
                   <td style="padding: 20px; width: 75%; vertical-align: middle">
 
-<p><strong>GrandChallenge dockerization</strong><br>
-<a href="https://github.com/PytorchConnectomics/snemi3d-gc">SNEMI3D</a> / <a href="https://github.com/PytorchConnectomics/AxonEM-challenge">AxonEM</a> / <a href="https://github.com/ebesier/rnr-exm">RNR-EXM</a><br></p>
-<p>Ported evaluation scripts from connectomics challenges to the GrandChallenge platform</p>
+<p><strong>ChunkPipeline (2024)</strong><br>
+<a href="https://github.com/jasonkena/ChunkPipeline">repo</a><br></p>
+<p>Created a Dask-powered framework for orchestrating data processing pipelines on massive-scale connectomics datasets; ported 3D algorithms (<a href="https://github.com/seung-lab/connected-components-3d">connected components</a>, <a href="https://github.com/seung-lab/euclidean-distance-transform-3d/">euclidean distance transform</a>, and <a href="https://github.com/seung-lab/kimimaro">TEASAR skeletonization</a>) from the Seung Lab to be chunking-compatible, allowing for efficient utilization of the <a href="https://www.bc.edu/bc-web/offices/its/services/research-services/linux-cluster.html">Boston College Linux Cluster</a></p>
                   </td>
                 </tr>
                 
@@ -565,16 +610,16 @@
                   <td style="padding: 20px; width: 25%; vertical-align: middle" class="content-to-hide">
                   
                     <img
-                      src="static/chunkpipeline.png"
+                      src="static/grandchallenge.png"
                       width="160"
                     />
                     
                   </td>
                   <td style="padding: 20px; width: 75%; vertical-align: middle">
 
-<p><strong>ChunkPipeline</strong><br>
-<a href="https://github.com/jasonkena/ChunkPipeline">repo</a><br></p>
-<p>Created a Dask-powered framework for orchestrating data processing pipelines on massive-scale connectomics datasets; ported 3D algorithms (<a href="https://github.com/seung-lab/connected-components-3d">connected components</a>, <a href="https://github.com/seung-lab/euclidean-distance-transform-3d/">euclidean distance transform</a>, and <a href="https://github.com/seung-lab/kimimaro">TEASAR skeletonization</a>) from the Seung Lab to be chunking-compatible, allowing for efficient utilization of the <a href="https://www.bc.edu/bc-web/offices/its/services/research-services/linux-cluster.html">Boston College Linux Cluster</a></p>
+<p><strong>GrandChallenge dockerization (2023)</strong><br>
+<a href="https://github.com/PytorchConnectomics/snemi3d-gc">SNEMI3D</a> / <a href="https://github.com/PytorchConnectomics/AxonEM-challenge">AxonEM</a> / <a href="https://github.com/ebesier/rnr-exm">RNR-EXM</a><br></p>
+<p>Ported evaluation scripts from connectomics challenges to the GrandChallenge platform</p>
                   </td>
                 </tr>
                 

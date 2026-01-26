@@ -2,4 +2,4 @@ default:
     just --list
 
 render:
-    ls *.tex *.yaml | entr uv run render.py
+    ls *.yaml | entr uv run render.py
