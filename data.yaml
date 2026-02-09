@@ -202,7 +202,7 @@ publications:
     venue: Nature 2026
     image: static/barcode.png
     image_bg: static/barcode_bg.png
-    link: "[paper](https://doi.org/10.1038/s41586-026-10156-9)"
+    link: "[paper](https://doi.org/10.1038/s41586-026-10156-9) / [news](https://www.michiganmedicine.org/health-lab/protein-tape-recorder-enables-scientists-measure-and-decode-cellular-processes-scale-and-over-time)"
   - name: "Ultrastructural reconstruction of the endodermal nerve net of _Hydra vulgaris_"
     authors:
       - szhang
