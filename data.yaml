@@ -172,6 +172,12 @@ people:
     link: "[Pietro Liò](https://www.cl.cam.ac.uk/~pl219/)"
   - name: clinghu
     link: "[Changyang Linghu](https://bme.umich.edu/people/linghu-changyang/)"
+  - name: pnurkin
+    link: "Paige Nurkin"
+  - name: rren
+    link: "Richard Ren"
+  - name: ayakobe
+    link: "[Ayal Yakobe](https://www.linkedin.com/in/ayal-yakobe-profile/)"
 
 publications:
   - name: "Scalable and multiplexed recorders of gene regulation dynamics across weeks"
@@ -203,6 +209,23 @@ publications:
     image: static/barcode.png
     image_bg: static/barcode_bg.png
     link: "[paper](https://doi.org/10.1038/s41586-026-10156-9) / [news](https://www.michiganmedicine.org/health-lab/protein-tape-recorder-enables-scientists-measure-and-decode-cellular-processes-scale-and-over-time)"
+  - name: "VesiclePy: A Machine Learning Vesicle Analysis Toolbox for Volume Electron Microscopy"
+    authors:
+      - jadhinarta*
+      - yfan*
+      - agohain*
+      - mlin*
+      - pnurkin*
+      - rren*
+      - mroth*
+      - szhang*
+      - ayakobe
+      - ryuste
+      - dwei
+    venue: PLOS Computational Biology 2026
+    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.09.08.674799v1.abstract)"
+    image: static/vesiclepy.png
+    image_bg: static/vesiclepy_bg.png
   - name: "Ultrastructural reconstruction of the endodermal nerve net of _Hydra vulgaris_"
     authors:
       - szhang
