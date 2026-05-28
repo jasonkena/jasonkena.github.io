@@ -223,7 +223,7 @@ publications:
       - ryuste
       - dwei
     venue: PLOS Computational Biology 2026
-    link: "[preprint](https://www.biorxiv.org/content/10.1101/2025.09.08.674799v1.abstract)"
+    link: "[paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1013499) / [repo](https://github.com/PytorchConnectomics/VesiclePy)"
     image: static/vesiclepy.png
     image_bg: static/vesiclepy_bg.png
   - name: "Ultrastructural reconstruction of the endodermal nerve net of _Hydra vulgaris_"
