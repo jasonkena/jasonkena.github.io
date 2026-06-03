@@ -1,0 +1,19 @@
+project:
+  type: website
+
+website:
+  description: "Jason Ken Adhinarta's blog"
+  site-url: https://jasonkena.github.io/blog/
+  title: "blog"
+  navbar:
+    right:
+      - icon: house
+        href: https://jasonkena.github.io/
+      - icon: github
+        href: https://github.com/jasonkena/
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
