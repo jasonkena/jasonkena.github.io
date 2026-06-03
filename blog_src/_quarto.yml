@@ -4,13 +4,13 @@ project:
 website:
   description: "Jason Ken Adhinarta's blog"
   site-url: https://jasonkena.github.io/blog/
-  title: "blog"
+  title: "jasonkena's blog"
   navbar:
     right:
       - icon: house
         href: https://jasonkena.github.io/
-      - icon: github
-        href: https://github.com/jasonkena/
+      - icon: rss
+        href: index.xml
 format:
   html:
     theme:

@@ -1,0 +1,105 @@
+---
+title: "Good teachers don't cheat"
+description: "A unified view of policy gradients, self-distillation, and Pedagogical RL"
+author: "Jason Ken Adhinarta"
+date: "2026-06-03"
+categories: [rl, distillation]
+comments:
+  giscus:
+    repo: jasonkena/jasonkena.github.io
+---
+::: {style="display:none"}
+$$
+\newcommand{\KL}[2]{D_{\mathrm{KL}}\!\left(#1 \,\|\, #2\right)}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+$$
+:::
+
+**TL;DR:** Policy gradient RL, self-distillation techniques like [SDFT](https://arxiv.org/abs/2601.19897), and [Pedagogical RL](https://noahziems.com/pedagogical-rl) can all be viewed as optimizing the *same* objective $\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}$, just with slightly different optimization procedures. The privileged information $z$ that some of these methods feed in context is simply a tool to make the optimization of $\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}$ easier. The punchline is that, at optimality, the teacher's use of $z$ has to vanish: **good teachers don't cheat.**
+
+## Background
+
+Suppose we have a base policy $\pi_0(y \mid x)$ and we are interested in learning the policy
+
+$$
+\pi^*(y \mid x) \propto \pi_0(y \mid x) \exp\!\big(R(x,y)/\beta\big).
+$$
+
+With binary rewards and $\beta \to 0$, this collapses to $\pi^*(y \mid x) \propto \pi_0(y \mid x)\,\mathbf{1}_{\{R(x,y) = 1\}}$ i.e., the base policy restricted to correct answers.^[Note that this is exactly the ideal sampler proposed in Pedagogical RL]
+
+We can characterize RL as an [ELBO](https://en.wikipedia.org/wiki/Evidence_lower_bound) bound on the partition function $Z(x)$:
+$$
+\begin{aligned}
+Z(x) &= \mathbb{E}_{y \sim \pi_0(\cdot \mid x)} \left[ \exp\!\big(R(x,y)/\beta\big) \right]
+\end{aligned}
+$$
+
+For any distribution $q(\cdot \mid x) \ll \pi_0(\cdot \mid x)$ (i.e., $q(y \mid x) > 0$ implies $\pi_0(y \mid x) > 0$), we can rewrite this as an importance-weighted expectation under $q$:
+
+$$
+Z(x) = \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ \frac{\pi_0(y \mid x)}{q(y \mid x)} \exp\!\big(R(x,y)/\beta\big) \right].
+$$
+
+By Jensen's inequality and concavity of $\log$,
+
+$$
+\begin{aligned}
+\log Z(x) &\geq \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y)/\beta - \log \frac{q(y \mid x)}{\pi_0(y \mid x)} \right] \\
+\beta \log Z(x) &\geq \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y) \right] - \beta\, \KL{q(\cdot \mid x)}{\pi_0(\cdot \mid x)},
+\end{aligned}
+$$
+
+where equality holds iff $\frac{\pi_0(y \mid x)}{q(y \mid x)} \exp(R(x,y)/\beta)$ is constant over all $y$ with $q(y \mid x) > 0$; namely, when $q(y \mid x) = \pi^*(y \mid x)$. It is well known that
+
+$$
+\pi^*(y \mid x) = \argmax_q\; \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y) \right] - \beta\, \KL{q(\cdot \mid x)}{\pi_0(\cdot \mid x)},
+$$
+
+and this is the $\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}$ objective that policy gradient methods ([GRPO](https://arxiv.org/abs/2402.03300), etc.) typically solve.
+
+As a caveat, we note that some policy gradient methods actually train with $\beta=0$ for RLVR problems. However, from [RL's Razor](https://arxiv.org/abs/2509.04259) we know that on-policy RL methods implicitly bound KL divergence, making this a reasonable assumption.
+
+## Privileged information, and why good teachers don't cheat
+
+Now suppose we have *privileged information* $z \sim \rho(\cdot \mid x)$ (for example, $z \in \mathcal{Y}$ is an expert demonstration of a problem $x$) that makes it easier to obtain high rewards. In the simplest case $z = f(x)$ for some deterministic function $f$ (e.g., a lookup table over stored answers).
+
+Fix $z \sim \rho(\cdot \mid x)$ and parameterize a distribution $g(\cdot \mid x, z)$ with $g(\cdot \mid x, z) \ll \pi_0(\cdot \mid x)$. Applying the ELBO bound from above, we have almost trivially:
+$$
+\begin{aligned}
+\beta \log Z(x) &\geq \mathbb{E}_{y \sim g(\cdot \mid x, z)} \left[ R(x,y) \right] - \beta\, \KL{g(\cdot \mid x, z)}{\pi_0(\cdot \mid x)}.
+\end{aligned}
+$$
+
+That is, for *any* $z \sim \rho(\cdot \mid x)$, the optimal $g(\cdot \mid x, z)$ that achieves the bound is
+
+$$
+g(y \mid x, z) = \pi^*(y \mid x),
+$$
+
+**which does not depend on $z$!**
+
+The KL term is what makes this work, despite $\beta$ being possibly vanishingly small. Suppose $z$ is an expert demonstration containing the final answer, say $42$. Then $g(y \mid x, z) = \mathbf{1}_{\{y = 42\}}$ achieves the optimal reward, but it has *extremely high* KL divergence from $\pi_0$, and is therefore not feasible to distill into the student. It is difficult to distill a teacher which simply repeats the final answer into the student.
+
+## RL, self-distillation, and Pedagogical RL are all equivalent
+
+This gives us two ways to optimize the same $\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}$ objective:
+
+- **Start from $\pi(y \mid x) = \pi_0(y \mid x)$.** Sparse rewards, but $\KL{\pi_0}{\pi_0} = 0$. GRPO and the like.
+- **Start from $\pi_0(y \mid x, z)$.** Dense rewards, but large KL. Pedagogical RL and on-policy-distillation follow this paradigm.
+
+Importantly, KL divergence is significantly easier to optimize than sparse rewards, since rich gradients can be derived from full per-token logits (see [this](https://arxiv.org/abs/2504.10637)).
+
+The above motivates the following two-stage procedure:
+
+1. **Train the teacher** $g(y \mid x, z)$ to optimize $\mathbb{E}_g[R] - \beta\KL{g}{\pi_0}$. **At optimality, $g(y \mid x, z)$ loses its dependence on $z$.**
+2. **Distill the teacher** $g(y \mid x, z)$ into the student $\pi(y \mid x)$ via KL minimization, since $z$ is not available at test time. The direction of the KL is exactly the choice between two distillation methods:
+   a. Minimizing $\KL{\pi(\cdot \mid x)}{g(\cdot \mid x, z)}$ is exactly **on-policy distillation**.
+   b. Minimizing $\KL{g(\cdot \mid x, z)}{\pi(\cdot \mid x)}$ is equivalent to maximizing $\mathbb{E}_{y \sim g(\cdot \mid x, z)}[\log \pi(y \mid x)]$, which is standard **off-policy SFT**, which Pedagogical RL argues is more sample-efficient than on-policy distillation.
+
+So policy gradients, self-distillation, and Pedagogical RL can be interpreted as three different optimization procedures for the same underlying objective $\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}$, differing in their use of $z$ and the direction of KL minimization.
+
+## Self-distillation woes
+
+The problem with most on-policy distillation techniques is that the teacher $g(y \mid x, z) = \pi_0(y \mid x, z)$ is **never trained** to optimize $\mathbb{E}_g[R] - \beta\KL{g}{\pi_0}$, step 1 is skipped! As a result, the teacher is not guaranteed to lose its dependence on $z$, and on-policy distillation leaks the privileged information straight into the student. This probably causes the various stability issues observed in on-policy-distillation methods, with student and teacher logits diverging irreconcilably.
+
+This post hints at the direction of some ongoing work; more to come!

@@ -6,10 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Harlow Malloc">
+<meta name="author" content="Jason Ken Adhinarta">
 <meta name="dcterms.date" content="2026-06-03">
+<meta name="description" content="A unified view of policy gradients, self-distillation, and Pedagogical RL">
 
-<title>Post With Code – blog</title>
+<title>Good teachers don’t cheat – jasonkena's blog</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -73,6 +74,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -85,7 +115,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">blog</span>
+    <span class="navbar-title">jasonkena’s blog</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -100,7 +130,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/jasonkena/"> <i class="bi bi-github" role="img">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -115,11 +145,15 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Post With Code</h1>
-                                <div class="quarto-categories">
-                <div class="quarto-category">news</div>
-                <div class="quarto-category">code</div>
-                <div class="quarto-category">analysis</div>
+      <h1 class="title">Good teachers don’t cheat</h1>
+                  <div>
+        <div class="description">
+          A unified view of policy gradients, self-distillation, and Pedagogical RL
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">rl</div>
+                <div class="quarto-category">distillation</div>
               </div>
                   </div>
   </div>
@@ -130,7 +164,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Author</div>
       <div class="quarto-title-meta-contents">
-               <p>Harlow Malloc </p>
+               <p>Jason Ken Adhinarta </p>
             </div>
     </div>
       
@@ -156,11 +190,92 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>This is a post with executable code.</p>
+<div style="display:none">
+<p><span class="math display">\[
+\newcommand{\KL}[2]{D_{\mathrm{KL}}\!\left(#1 \,\|\, #2\right)}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\]</span></p>
+</div>
+<p><strong>TL;DR:</strong> Policy gradient RL, self-distillation techniques like <a href="https://arxiv.org/abs/2601.19897">SDFT</a>, and <a href="https://noahziems.com/pedagogical-rl">Pedagogical RL</a> can all be viewed as optimizing the <em>same</em> objective <span class="math inline">\(\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}\)</span>, just with slightly different optimization procedures. The privileged information <span class="math inline">\(z\)</span> that some of these methods feed in context is simply a tool to make the optimization of <span class="math inline">\(\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}\)</span> easier. The punchline is that, at optimality, the teacher’s use of <span class="math inline">\(z\)</span> has to vanish: <strong>good teachers don’t cheat.</strong></p>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
+<p>Suppose we have a base policy <span class="math inline">\(\pi_0(y \mid x)\)</span> and we are interested in learning the policy</p>
+<p><span class="math display">\[
+\pi^*(y \mid x) \propto \pi_0(y \mid x) \exp\!\big(R(x,y)/\beta\big).
+\]</span></p>
+<p>With binary rewards and <span class="math inline">\(\beta \to 0\)</span>, this collapses to <span class="math inline">\(\pi^*(y \mid x) \propto \pi_0(y \mid x)\,\mathbf{1}_{\{R(x,y) = 1\}}\)</span> i.e., the base policy restricted to correct answers.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>We can characterize RL as an <a href="https://en.wikipedia.org/wiki/Evidence_lower_bound">ELBO</a> bound on the partition function <span class="math inline">\(Z(x)\)</span>: <span class="math display">\[
+\begin{aligned}
+Z(x) &amp;= \mathbb{E}_{y \sim \pi_0(\cdot \mid x)} \left[ \exp\!\big(R(x,y)/\beta\big) \right]
+\end{aligned}
+\]</span></p>
+<p>For any distribution <span class="math inline">\(q(\cdot \mid x) \ll \pi_0(\cdot \mid x)\)</span> (i.e., <span class="math inline">\(q(y \mid x) &gt; 0\)</span> implies <span class="math inline">\(\pi_0(y \mid x) &gt; 0\)</span>), we can rewrite this as an importance-weighted expectation under <span class="math inline">\(q\)</span>:</p>
+<p><span class="math display">\[
+Z(x) = \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ \frac{\pi_0(y \mid x)}{q(y \mid x)} \exp\!\big(R(x,y)/\beta\big) \right].
+\]</span></p>
+<p>By Jensen’s inequality and concavity of <span class="math inline">\(\log\)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log Z(x) &amp;\geq \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y)/\beta - \log \frac{q(y \mid x)}{\pi_0(y \mid x)} \right] \\
+\beta \log Z(x) &amp;\geq \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y) \right] - \beta\, \KL{q(\cdot \mid x)}{\pi_0(\cdot \mid x)},
+\end{aligned}
+\]</span></p>
+<p>where equality holds iff <span class="math inline">\(\frac{\pi_0(y \mid x)}{q(y \mid x)} \exp(R(x,y)/\beta)\)</span> is constant over all <span class="math inline">\(y\)</span> with <span class="math inline">\(q(y \mid x) &gt; 0\)</span>; namely, when <span class="math inline">\(q(y \mid x) = \pi^*(y \mid x)\)</span>. It is well known that</p>
+<p><span class="math display">\[
+\pi^*(y \mid x) = \argmax_q\; \mathbb{E}_{y \sim q(\cdot \mid x)} \left[ R(x,y) \right] - \beta\, \KL{q(\cdot \mid x)}{\pi_0(\cdot \mid x)},
+\]</span></p>
+<p>and this is the <span class="math inline">\(\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}\)</span> objective that policy gradient methods (<a href="https://arxiv.org/abs/2402.03300">GRPO</a>, etc.) typically solve.</p>
+<p>As a caveat, we note that some policy gradient methods actually train with <span class="math inline">\(\beta=0\)</span> for RLVR problems. However, from <a href="https://arxiv.org/abs/2509.04259">RL’s Razor</a> we know that on-policy RL methods implicitly bound KL divergence, making this a reasonable assumption.</p>
+</section>
+<section id="privileged-information-and-why-good-teachers-dont-cheat" class="level2">
+<h2 class="anchored" data-anchor-id="privileged-information-and-why-good-teachers-dont-cheat">Privileged information, and why good teachers don’t cheat</h2>
+<p>Now suppose we have <em>privileged information</em> <span class="math inline">\(z \sim \rho(\cdot \mid x)\)</span> (for example, <span class="math inline">\(z \in \mathcal{Y}\)</span> is an expert demonstration of a problem <span class="math inline">\(x\)</span>) that makes it easier to obtain high rewards. In the simplest case <span class="math inline">\(z = f(x)\)</span> for some deterministic function <span class="math inline">\(f\)</span> (e.g., a lookup table over stored answers).</p>
+<p>Fix <span class="math inline">\(z \sim \rho(\cdot \mid x)\)</span> and parameterize a distribution <span class="math inline">\(g(\cdot \mid x, z)\)</span> with <span class="math inline">\(g(\cdot \mid x, z) \ll \pi_0(\cdot \mid x)\)</span>. Applying the ELBO bound from above, we have almost trivially: <span class="math display">\[
+\begin{aligned}
+\beta \log Z(x) &amp;\geq \mathbb{E}_{y \sim g(\cdot \mid x, z)} \left[ R(x,y) \right] - \beta\, \KL{g(\cdot \mid x, z)}{\pi_0(\cdot \mid x)}.
+\end{aligned}
+\]</span></p>
+<p>That is, for <em>any</em> <span class="math inline">\(z \sim \rho(\cdot \mid x)\)</span>, the optimal <span class="math inline">\(g(\cdot \mid x, z)\)</span> that achieves the bound is</p>
+<p><span class="math display">\[
+g(y \mid x, z) = \pi^*(y \mid x),
+\]</span></p>
+<p><strong>which does not depend on <span class="math inline">\(z\)</span>!</strong></p>
+<p>The KL term is what makes this work, despite <span class="math inline">\(\beta\)</span> being possibly vanishingly small. Suppose <span class="math inline">\(z\)</span> is an expert demonstration containing the final answer, say <span class="math inline">\(42\)</span>. Then <span class="math inline">\(g(y \mid x, z) = \mathbf{1}_{\{y = 42\}}\)</span> achieves the optimal reward, but it has <em>extremely high</em> KL divergence from <span class="math inline">\(\pi_0\)</span>, and is therefore not feasible to distill into the student. It is difficult to distill a teacher which simply repeats the final answer into the student.</p>
+</section>
+<section id="rl-self-distillation-and-pedagogical-rl-are-all-equivalent" class="level2">
+<h2 class="anchored" data-anchor-id="rl-self-distillation-and-pedagogical-rl-are-all-equivalent">RL, self-distillation, and Pedagogical RL are all equivalent</h2>
+<p>This gives us two ways to optimize the same <span class="math inline">\(\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}\)</span> objective:</p>
+<ul>
+<li><strong>Start from <span class="math inline">\(\pi(y \mid x) = \pi_0(y \mid x)\)</span>.</strong> Sparse rewards, but <span class="math inline">\(\KL{\pi_0}{\pi_0} = 0\)</span>. GRPO and the like.</li>
+<li><strong>Start from <span class="math inline">\(\pi_0(y \mid x, z)\)</span>.</strong> Dense rewards, but large KL. Pedagogical RL and on-policy-distillation follow this paradigm.</li>
+</ul>
+<p>Importantly, KL divergence is significantly easier to optimize than sparse rewards, since rich gradients can be derived from full per-token logits (see <a href="https://arxiv.org/abs/2504.10637">this</a>).</p>
+<p>The above motivates the following two-stage procedure:</p>
+<ol type="1">
+<li><strong>Train the teacher</strong> <span class="math inline">\(g(y \mid x, z)\)</span> to optimize <span class="math inline">\(\mathbb{E}_g[R] - \beta\KL{g}{\pi_0}\)</span>. <strong>At optimality, <span class="math inline">\(g(y \mid x, z)\)</span> loses its dependence on <span class="math inline">\(z\)</span>.</strong></li>
+<li><strong>Distill the teacher</strong> <span class="math inline">\(g(y \mid x, z)\)</span> into the student <span class="math inline">\(\pi(y \mid x)\)</span> via KL minimization, since <span class="math inline">\(z\)</span> is not available at test time. The direction of the KL is exactly the choice between two distillation methods:
+<ol type="a">
+<li>Minimizing <span class="math inline">\(\KL{\pi(\cdot \mid x)}{g(\cdot \mid x, z)}\)</span> is exactly <strong>on-policy distillation</strong>.</li>
+<li>Minimizing <span class="math inline">\(\KL{g(\cdot \mid x, z)}{\pi(\cdot \mid x)}\)</span> is equivalent to maximizing <span class="math inline">\(\mathbb{E}_{y \sim g(\cdot \mid x, z)}[\log \pi(y \mid x)]\)</span>, which is standard <strong>off-policy SFT</strong>, which Pedagogical RL argues is more sample-efficient than on-policy distillation.</li>
+</ol></li>
+</ol>
+<p>So policy gradients, self-distillation, and Pedagogical RL can be interpreted as three different optimization procedures for the same underlying objective <span class="math inline">\(\mathbb{E}_\pi[R] - \beta\KL{\pi}{\pi_0}\)</span>, differing in their use of <span class="math inline">\(z\)</span> and the direction of KL minimization.</p>
+</section>
+<section id="self-distillation-woes" class="level2">
+<h2 class="anchored" data-anchor-id="self-distillation-woes">Self-distillation woes</h2>
+<p>The problem with most on-policy distillation techniques is that the teacher <span class="math inline">\(g(y \mid x, z) = \pi_0(y \mid x, z)\)</span> is <strong>never trained</strong> to optimize <span class="math inline">\(\mathbb{E}_g[R] - \beta\KL{g}{\pi_0}\)</span>, step 1 is skipped! As a result, the teacher is not guaranteed to lose its dependence on <span class="math inline">\(z\)</span>, and on-policy distillation leaks the privileged information straight into the student. This probably causes the various stability issues observed in on-policy-distillation methods, with student and teacher logits diverging irreconcilably.</p>
+<p>This post hints at the direction of some ongoing work; more to come!</p>
 
 
+</section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Note that this is exactly the ideal sampler proposed in Pedagogical RL<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -561,6 +676,35 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "jasonkena/jasonkena.github.io";
+    script.dataset.repoId = "R_kgDOI6NuQw";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOI6NuQ84C-c-s";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script>
 </div> <!-- /content -->
 
 

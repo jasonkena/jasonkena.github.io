@@ -5,54 +5,88 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>blog</title>
+<title>jasonkena&#39;s blog</title>
 <link>https://jasonkena.github.io/blog/</link>
 <atom:link href="https://jasonkena.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Jason Ken Adhinarta&#39;s blog</description>
 <generator>quarto-1.9.38</generator>
 <lastBuildDate>Wed, 03 Jun 2026 04:00:00 GMT</lastBuildDate>
 <item>
-  <title>Post With Code</title>
-  <dc:creator>Harlow Malloc</dc:creator>
-  <link>https://jasonkena.github.io/blog/posts/post-with-code/</link>
+  <title>Good teachers don’t cheat</title>
+  <dc:creator>Jason Ken Adhinarta</dc:creator>
+  <link>https://jasonkena.github.io/blog/posts/good_teachers_dont_cheat/</link>
   <description><![CDATA[ 
 
 
 
 
 
-<p>This is a post with executable code.</p>
+<div style="display:none">
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cnewcommand%7B%5CKL%7D%5B2%5D%7BD_%7B%5Cmathrm%7BKL%7D%7D%5C!%5Cleft(#1%20%5C,%5C%7C%5C,%20#2%5Cright)%7D%0A%5Cnewcommand%7B%5Cargmax%7D%7B%5Coperatorname*%7Barg%5C,max%7D%7D%0A"></p>
+</div>
+<p><strong>TL;DR:</strong> Policy gradient RL, self-distillation techniques like <a href="https://arxiv.org/abs/2601.19897">SDFT</a>, and <a href="https://noahziems.com/pedagogical-rl">Pedagogical RL</a> can all be viewed as optimizing the <em>same</em> objective <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%5Cpi%5BR%5D%20-%20%5Cbeta%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D">, just with slightly different optimization procedures. The privileged information <img src="https://latex.codecogs.com/png.latex?z"> that some of these methods feed in context is simply a tool to make the optimization of <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%5Cpi%5BR%5D%20-%20%5Cbeta%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D"> easier. The punchline is that, at optimality, the teacher’s use of <img src="https://latex.codecogs.com/png.latex?z"> has to vanish: <strong>good teachers don’t cheat.</strong></p>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
+<p>Suppose we have a base policy <img src="https://latex.codecogs.com/png.latex?%5Cpi_0(y%20%5Cmid%20x)"> and we are interested in learning the policy</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cpi%5E*(y%20%5Cmid%20x)%20%5Cpropto%20%5Cpi_0(y%20%5Cmid%20x)%20%5Cexp%5C!%5Cbig(R(x,y)/%5Cbeta%5Cbig).%0A"></p>
+<p>With binary rewards and <img src="https://latex.codecogs.com/png.latex?%5Cbeta%20%5Cto%200">, this collapses to <img src="https://latex.codecogs.com/png.latex?%5Cpi%5E*(y%20%5Cmid%20x)%20%5Cpropto%20%5Cpi_0(y%20%5Cmid%20x)%5C,%5Cmathbf%7B1%7D_%7B%5C%7BR(x,y)%20=%201%5C%7D%7D"> i.e., the base policy restricted to correct answers.<sup>1</sup></p>
+<p>We can characterize RL as an <a href="https://en.wikipedia.org/wiki/Evidence_lower_bound">ELBO</a> bound on the partition function <img src="https://latex.codecogs.com/png.latex?Z(x)">: <img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0AZ(x)%20&amp;=%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20%5Cpi_0(%5Ccdot%20%5Cmid%20x)%7D%20%5Cleft%5B%20%5Cexp%5C!%5Cbig(R(x,y)/%5Cbeta%5Cbig)%20%5Cright%5D%0A%5Cend%7Baligned%7D%0A"></p>
+<p>For any distribution <img src="https://latex.codecogs.com/png.latex?q(%5Ccdot%20%5Cmid%20x)%20%5Cll%20%5Cpi_0(%5Ccdot%20%5Cmid%20x)"> (i.e., <img src="https://latex.codecogs.com/png.latex?q(y%20%5Cmid%20x)%20%3E%200"> implies <img src="https://latex.codecogs.com/png.latex?%5Cpi_0(y%20%5Cmid%20x)%20%3E%200">), we can rewrite this as an importance-weighted expectation under <img src="https://latex.codecogs.com/png.latex?q">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AZ(x)%20=%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20q(%5Ccdot%20%5Cmid%20x)%7D%20%5Cleft%5B%20%5Cfrac%7B%5Cpi_0(y%20%5Cmid%20x)%7D%7Bq(y%20%5Cmid%20x)%7D%20%5Cexp%5C!%5Cbig(R(x,y)/%5Cbeta%5Cbig)%20%5Cright%5D.%0A"></p>
+<p>By Jensen’s inequality and concavity of <img src="https://latex.codecogs.com/png.latex?%5Clog">,</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A%5Clog%20Z(x)%20&amp;%5Cgeq%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20q(%5Ccdot%20%5Cmid%20x)%7D%20%5Cleft%5B%20R(x,y)/%5Cbeta%20-%20%5Clog%20%5Cfrac%7Bq(y%20%5Cmid%20x)%7D%7B%5Cpi_0(y%20%5Cmid%20x)%7D%20%5Cright%5D%20%5C%5C%0A%5Cbeta%20%5Clog%20Z(x)%20&amp;%5Cgeq%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20q(%5Ccdot%20%5Cmid%20x)%7D%20%5Cleft%5B%20R(x,y)%20%5Cright%5D%20-%20%5Cbeta%5C,%20%5CKL%7Bq(%5Ccdot%20%5Cmid%20x)%7D%7B%5Cpi_0(%5Ccdot%20%5Cmid%20x)%7D,%0A%5Cend%7Baligned%7D%0A"></p>
+<p>where equality holds iff <img src="https://latex.codecogs.com/png.latex?%5Cfrac%7B%5Cpi_0(y%20%5Cmid%20x)%7D%7Bq(y%20%5Cmid%20x)%7D%20%5Cexp(R(x,y)/%5Cbeta)"> is constant over all <img src="https://latex.codecogs.com/png.latex?y"> with <img src="https://latex.codecogs.com/png.latex?q(y%20%5Cmid%20x)%20%3E%200">; namely, when <img src="https://latex.codecogs.com/png.latex?q(y%20%5Cmid%20x)%20=%20%5Cpi%5E*(y%20%5Cmid%20x)">. It is well known that</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cpi%5E*(y%20%5Cmid%20x)%20=%20%5Cargmax_q%5C;%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20q(%5Ccdot%20%5Cmid%20x)%7D%20%5Cleft%5B%20R(x,y)%20%5Cright%5D%20-%20%5Cbeta%5C,%20%5CKL%7Bq(%5Ccdot%20%5Cmid%20x)%7D%7B%5Cpi_0(%5Ccdot%20%5Cmid%20x)%7D,%0A"></p>
+<p>and this is the <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%5Cpi%5BR%5D%20-%20%5Cbeta%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D"> objective that policy gradient methods (<a href="https://arxiv.org/abs/2402.03300">GRPO</a>, etc.) typically solve.</p>
+<p>As a caveat, we note that some policy gradient methods actually train with <img src="https://latex.codecogs.com/png.latex?%5Cbeta=0"> for RLVR problems. However, from <a href="https://arxiv.org/abs/2509.04259">RL’s Razor</a> we know that on-policy RL methods implicitly bound KL divergence, making this a reasonable assumption.</p>
+</section>
+<section id="privileged-information-and-why-good-teachers-dont-cheat" class="level2">
+<h2 class="anchored" data-anchor-id="privileged-information-and-why-good-teachers-dont-cheat">Privileged information, and why good teachers don’t cheat</h2>
+<p>Now suppose we have <em>privileged information</em> <img src="https://latex.codecogs.com/png.latex?z%20%5Csim%20%5Crho(%5Ccdot%20%5Cmid%20x)"> (for example, <img src="https://latex.codecogs.com/png.latex?z%20%5Cin%20%5Cmathcal%7BY%7D"> is an expert demonstration of a problem <img src="https://latex.codecogs.com/png.latex?x">) that makes it easier to obtain high rewards. In the simplest case <img src="https://latex.codecogs.com/png.latex?z%20=%20f(x)"> for some deterministic function <img src="https://latex.codecogs.com/png.latex?f"> (e.g., a lookup table over stored answers).</p>
+<p>Fix <img src="https://latex.codecogs.com/png.latex?z%20%5Csim%20%5Crho(%5Ccdot%20%5Cmid%20x)"> and parameterize a distribution <img src="https://latex.codecogs.com/png.latex?g(%5Ccdot%20%5Cmid%20x,%20z)"> with <img src="https://latex.codecogs.com/png.latex?g(%5Ccdot%20%5Cmid%20x,%20z)%20%5Cll%20%5Cpi_0(%5Ccdot%20%5Cmid%20x)">. Applying the ELBO bound from above, we have almost trivially: <img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A%5Cbeta%20%5Clog%20Z(x)%20&amp;%5Cgeq%20%5Cmathbb%7BE%7D_%7By%20%5Csim%20g(%5Ccdot%20%5Cmid%20x,%20z)%7D%20%5Cleft%5B%20R(x,y)%20%5Cright%5D%20-%20%5Cbeta%5C,%20%5CKL%7Bg(%5Ccdot%20%5Cmid%20x,%20z)%7D%7B%5Cpi_0(%5Ccdot%20%5Cmid%20x)%7D.%0A%5Cend%7Baligned%7D%0A"></p>
+<p>That is, for <em>any</em> <img src="https://latex.codecogs.com/png.latex?z%20%5Csim%20%5Crho(%5Ccdot%20%5Cmid%20x)">, the optimal <img src="https://latex.codecogs.com/png.latex?g(%5Ccdot%20%5Cmid%20x,%20z)"> that achieves the bound is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Ag(y%20%5Cmid%20x,%20z)%20=%20%5Cpi%5E*(y%20%5Cmid%20x),%0A"></p>
+<p><strong>which does not depend on <img src="https://latex.codecogs.com/png.latex?z">!</strong></p>
+<p>The KL term is what makes this work, despite <img src="https://latex.codecogs.com/png.latex?%5Cbeta"> being possibly vanishingly small. Suppose <img src="https://latex.codecogs.com/png.latex?z"> is an expert demonstration containing the final answer, say <img src="https://latex.codecogs.com/png.latex?42">. Then <img src="https://latex.codecogs.com/png.latex?g(y%20%5Cmid%20x,%20z)%20=%20%5Cmathbf%7B1%7D_%7B%5C%7By%20=%2042%5C%7D%7D"> achieves the optimal reward, but it has <em>extremely high</em> KL divergence from <img src="https://latex.codecogs.com/png.latex?%5Cpi_0">, and is therefore not feasible to distill into the student. It is difficult to distill a teacher which simply repeats the final answer into the student.</p>
+</section>
+<section id="rl-self-distillation-and-pedagogical-rl-are-all-equivalent" class="level2">
+<h2 class="anchored" data-anchor-id="rl-self-distillation-and-pedagogical-rl-are-all-equivalent">RL, self-distillation, and Pedagogical RL are all equivalent</h2>
+<p>This gives us two ways to optimize the same <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%5Cpi%5BR%5D%20-%20%5Cbeta%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D"> objective:</p>
+<ul>
+<li><strong>Start from <img src="https://latex.codecogs.com/png.latex?%5Cpi(y%20%5Cmid%20x)%20=%20%5Cpi_0(y%20%5Cmid%20x)">.</strong> Sparse rewards, but <img src="https://latex.codecogs.com/png.latex?%5CKL%7B%5Cpi_0%7D%7B%5Cpi_0%7D%20=%200">. GRPO and the like.</li>
+<li><strong>Start from <img src="https://latex.codecogs.com/png.latex?%5Cpi_0(y%20%5Cmid%20x,%20z)">.</strong> Dense rewards, but large KL. Pedagogical RL and on-policy-distillation follow this paradigm.</li>
+</ul>
+<p>Importantly, KL divergence is significantly easier to optimize than sparse rewards, since rich gradients can be derived from full per-token logits (see <a href="https://arxiv.org/abs/2504.10637">this</a>).</p>
+<p>The above motivates the following two-stage procedure:</p>
+<ol type="1">
+<li><strong>Train the teacher</strong> <img src="https://latex.codecogs.com/png.latex?g(y%20%5Cmid%20x,%20z)"> to optimize <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_g%5BR%5D%20-%20%5Cbeta%5CKL%7Bg%7D%7B%5Cpi_0%7D">. <strong>At optimality, <img src="https://latex.codecogs.com/png.latex?g(y%20%5Cmid%20x,%20z)"> loses its dependence on <img src="https://latex.codecogs.com/png.latex?z">.</strong></li>
+<li><strong>Distill the teacher</strong> <img src="https://latex.codecogs.com/png.latex?g(y%20%5Cmid%20x,%20z)"> into the student <img src="https://latex.codecogs.com/png.latex?%5Cpi(y%20%5Cmid%20x)"> via KL minimization, since <img src="https://latex.codecogs.com/png.latex?z"> is not available at test time. The direction of the KL is exactly the choice between two distillation methods:
+<ol type="a">
+<li>Minimizing <img src="https://latex.codecogs.com/png.latex?%5CKL%7B%5Cpi(%5Ccdot%20%5Cmid%20x)%7D%7Bg(%5Ccdot%20%5Cmid%20x,%20z)%7D"> is exactly <strong>on-policy distillation</strong>.</li>
+<li>Minimizing <img src="https://latex.codecogs.com/png.latex?%5CKL%7Bg(%5Ccdot%20%5Cmid%20x,%20z)%7D%7B%5Cpi(%5Ccdot%20%5Cmid%20x)%7D"> is equivalent to maximizing <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%7By%20%5Csim%20g(%5Ccdot%20%5Cmid%20x,%20z)%7D%5B%5Clog%20%5Cpi(y%20%5Cmid%20x)%5D">, which is standard <strong>off-policy SFT</strong>, which Pedagogical RL argues is more sample-efficient than on-policy distillation.</li>
+</ol></li>
+</ol>
+<p>So policy gradients, self-distillation, and Pedagogical RL can be interpreted as three different optimization procedures for the same underlying objective <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%5Cpi%5BR%5D%20-%20%5Cbeta%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D">, differing in their use of <img src="https://latex.codecogs.com/png.latex?z"> and the direction of KL minimization.</p>
+</section>
+<section id="self-distillation-woes" class="level2">
+<h2 class="anchored" data-anchor-id="self-distillation-woes">Self-distillation woes</h2>
+<p>The problem with most on-policy distillation techniques is that the teacher <img src="https://latex.codecogs.com/png.latex?g(y%20%5Cmid%20x,%20z)%20=%20%5Cpi_0(y%20%5Cmid%20x,%20z)"> is <strong>never trained</strong> to optimize <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_g%5BR%5D%20-%20%5Cbeta%5CKL%7Bg%7D%7B%5Cpi_0%7D">, step 1 is skipped! As a result, the teacher is not guaranteed to lose its dependence on <img src="https://latex.codecogs.com/png.latex?z">, and on-policy distillation leaks the privileged information straight into the student. This probably causes the various stability issues observed in on-policy-distillation methods, with student and teacher logits diverging irreconcilably.</p>
+<p>This post hints at the direction of some ongoing work; more to come!</p>
 
 
+</section>
 
- ]]></description>
-  <category>news</category>
-  <category>code</category>
-  <category>analysis</category>
-  <guid>https://jasonkena.github.io/blog/posts/post-with-code/</guid>
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Note that this is exactly the ideal sampler proposed in Pedagogical RL↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>rl</category>
+  <category>distillation</category>
+  <guid>https://jasonkena.github.io/blog/posts/good_teachers_dont_cheat/</guid>
   <pubDate>Wed, 03 Jun 2026 04:00:00 GMT</pubDate>
-  <media:content url="https://jasonkena.github.io/blog/posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
-</item>
-<item>
-  <title>Welcome To My Blog</title>
-  <dc:creator>Tristan O&#39;Malley</dc:creator>
-  <link>https://jasonkena.github.io/blog/posts/welcome/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>This is the first post in a Quarto blog. Welcome!</p>
-<p><img src="https://jasonkena.github.io/blog/posts/welcome/thumbnail.jpg" class="img-fluid"></p>
-<p>Since this post doesn’t specify an explicit <code>image</code>, the first image in the post will be used in the listing page of posts.</p>
-
-
-
- ]]></description>
-  <category>news</category>
-  <guid>https://jasonkena.github.io/blog/posts/welcome/</guid>
-  <pubDate>Sun, 31 May 2026 04:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
