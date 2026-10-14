@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jason Ken Adhinarta">
+<meta name="author" content="Raina Wu">
+<meta name="author" content="Zhang-Wei Hong">
+<meta name="dcterms.date" content="2026-10-14">
+<meta name="description" content="On overfitting, thinking-mode transfer, and misaligned gradients">
+
+<title>A critical look at self-distillation for reasoning – jasonkena’s blog</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+<style>
+caption, figcaption {
+   text-align: center;
+}
+</style>
+<link rel="icon" href="https://jasonkena.github.io/static/favicon.svg" type="image/svg+xml">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">jasonkena’s blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://jasonkena.github.io/"> <i class="bi bi-house" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">A critical look at self-distillation for reasoning</h1>
+                  <div>
+        <div class="description">
+          On overfitting, thinking-mode transfer, and misaligned gradients
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">rl</div>
+                <div class="quarto-category">distillation</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Authors</div>
+      <div class="quarto-title-meta-contents">
+               <p>Jason Ken Adhinarta </p>
+               <p>Raina Wu </p>
+               <p>Zhang-Wei Hong </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 14, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div style="display:none">
+<p><span class="math display">\[
+\newcommand{\KL}[2]{D_{\mathrm{KL}}\!\left(#1 \,\|\, #2\right)}
+\newcommand{\D}[2]{D\!\left(#1 \,\|\, #2\right)}
+\newcommand{\sg}[1]{\operatorname{sg}\left(#1\right)}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\]</span></p>
+</div>
+<hr style="margin-top:-1.5rem">
+<p><span style="font-size: 0.8em; font-style: italic;">This blog post summarizes our paper which will appear at the <a href="https://pretrain2posttrain.github.io/">Transitioning from Pre-Training to Post-Training</a> workshop at NeurIPS 2026. This is joint work with Ashutosh Sharma, Avinash Balakrishnan, and Rameswar Panda at the <a href="https://mitibm.mit.edu/">MIT-IBM Computing Research Lab</a>; along with Polina Golland and Yoon Kim at <a href="https://www.csail.mit.edu/">MIT CSAIL</a>.</span></p>
+<p><span style="font-size: 0.8em; font-style: italic;">This post focuses on the main results; the paper covers detailed ablations and results across Qwen3 (1.7B–14B) and Olmo-3-7B-Instruct along with our experimental setup; we also provide code to reproduce our results.</span></p>
+<p><a href="https://arxiv.org/abs/2610.18613" class="btn btn-outline-primary btn-sm"><i class="ai ai-arxiv"></i> arXiv</a> <a href="https://github.com/sleepypandu/does-sd-improve-reasoning" class="btn btn-outline-primary btn-sm"><i class="bi bi-github"></i> Code</a></p>
+<hr>
+<p><a href="https://arxiv.org/abs/2608.01589">There</a> <a href="https://arxiv.org/abs/2605.22511">has</a> <a href="https://arxiv.org/abs/2605.17497">been</a> <a href="https://arxiv.org/abs/2607.28582">a</a> <a href="https://arxiv.org/abs/2605.13255">surge</a> <a href="https://arxiv.org/abs/2606.19327">of</a> <a href="https://arxiv.org/abs/2604.12002">interest</a> <a href="https://arxiv.org/abs/2608.06296">in</a> <a href="https://arxiv.org/abs/2605.28791">the</a> <a href="https://arxiv.org/abs/2605.12652v2">self-distillation</a> <a href="https://arxiv.org/abs/2609.25623">paradigm</a>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What is self-distillation?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<p>In typical policy gradient reinforcement learning (e.g., <a href="https://arxiv.org/abs/2402.03300">GRPO</a>), a model is trained to increase its expected reward, through gradient ascent on <span class="math inline">\(\mathbb{E}_{y\sim \pi_\theta}[R(y)]\)</span>. This provides <em>coarse</em> learning signals at the level of entire trajectories <span class="math inline">\(y\sim \pi_\theta\)</span>, which might require a large number of samples to learn effectively.</p>
+<p>But we know that LLMs generate better solutions when given additional context. Namely, if we tell the model that the last time it tried to solve a task, it triggered <code>ModuleNotFoundError: No module named 'numpy'</code>, it probably won’t make the same mistake. So, why not train the model to behave <em>as if it had access to this additional context?</em></p>
+<p>In self-distillation, this additional context or <em>privileged information</em> can take many forms: reference solutions to math problems, code execution feedback, etc. In practice, in self-distillation we minimize the “difference” between the model’s behavior with and without privileged information along trajectories sampled without privileged information. Formally, we write: <span class="math display">\[
+\mathcal{L}_{\operatorname{SD}}=\mathbb{E}_{y\sim \operatorname{\sg{\pi_\theta}}}\left[\sum_{t=1}^{|y|} \D{\pi_\theta(y_t|y_{&lt;t})}{\sg{ \pi_\theta(y_t|y_{&lt;t}, z) }}\right],
+\]</span> where <span class="math inline">\(\operatorname{sg}\)</span> is the stop-gradient operator, and <span class="math inline">\(z\)</span> is the privileged information, and <span class="math inline">\(D\)</span> is a choice of information divergence. With <span class="math inline">\(D=D_{\operatorname{KL}}\)</span>, <span class="math inline">\(\mathcal{L}_{\operatorname{SD}}\)</span> looks a lot like <span class="math inline">\(\KL{\pi_\theta(\cdot)}{\pi_\theta(\cdot|z)}\)</span>.</p>
+</div>
+</div>
+</div>
+<p><a href="https://arxiv.org/abs/2607.01763">However</a>, <a href="https://arxiv.org/abs/2607.05184">several</a> <a href="https://arxiv.org/abs/2603.24472">recent</a> <a href="https://arxiv.org/abs/2608.04794">works</a> <a href="https://arxiv.org/abs/2608.09263">have</a> <a href="https://arxiv.org/abs/2608.18271">questioned</a> <a href="https://arxiv.org/abs/2609.20612">the</a> <a href="https://arxiv.org/abs/2608.09228">effectiveness</a> <a href="https://arxiv.org/abs/2606.11709">of</a> <a href="https://arxiv.org/abs/2604.03128">self-distillation</a>. Self-distillation papers report impressive performance gains which are often hard to replicate. To study why, we carefully reproduce two representative methods, <a href="https://arxiv.org/abs/2601.20802">Self-Distillation Policy Optimization (SDPO)</a> and <a href="https://arxiv.org/abs/2601.18734">On-Policy Self-Distillation (OPSD)</a>, and study the assumptions underlying self-distillation as presented in <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al</a>. We discover the following:</p>
+<ul>
+<li><strong>SDPO induces overfitting</strong>, with degraded performance on either new problems or out-of-distribution tasks</li>
+<li><strong>OPSD does not rely on privileged information</strong>, instead depending on the Qwen3 thinking-mode toggles</li>
+<li><strong>Self-distillation gradients point the wrong way</strong>, breaking self-distillation assumptions</li>
+</ul>
+<p>Together, we believe these findings highlight the need to develop reinforcement learning algorithms that can leverage privileged information to robustly boost performance. <em>A niche we claim that self-distillation does not fill.</em></p>
+<!--
+https://arxiv.org/abs/2601.19897 # SDFT
+https://arxiv.org/abs/2601.20802 # SDPO
+https://arxiv.org/abs/2601.18734 # OPSD
+
+https://arxiv.org/abs/2608.01589 # PS opsd
+https://arxiv.org/abs/2605.22511 # search-E1
+https://arxiv.org/abs/2605.17497 # SSOPD
+https://arxiv.org/abs/2607.28582 # beta-OPSD
+https://arxiv.org/abs/2605.13255 # entropy-guided
+https://arxiv.org/abs/2606.19327 # rubric-guided
+https://arxiv.org/abs/2604.12002 # self-distillation zero
+https://arxiv.org/abs/2608.06296 # OPSD without any supervision
+https://arxiv.org/abs/2605.28791 # skill-conditioned OPSD
+https://arxiv.org/abs/2605.12652v2 # multirollout
+https://arxiv.org/abs/2609.25623 # privileged context design
+
+https://arxiv.org/abs/2607.01763 # denser neq better
+https://arxiv.org/abs/2607.05184 # rethinking for thinking models
+https://arxiv.org/abs/2603.24472 # sometimes degrade reasoning
+https://arxiv.org/abs/2608.04794 # microsoft
+https://arxiv.org/abs/2608.09263 # not value
+https://arxiv.org/abs/2608.18271 # rethinking PI
+https://arxiv.org/abs/2609.20612 # what does PI add
+https://arxiv.org/abs/2608.09228 # context induced behavior
+https://arxiv.org/abs/2606.11709 # RLCSD: Reinforcement Learning with Contrastive On-Policy Self-Distillation
+https://arxiv.org/abs/2604.03128 # Self-Distilled RLVR
+-->
+<section id="what-does-self-distillation-promise" class="level2">
+<h2 class="anchored" data-anchor-id="what-does-self-distillation-promise">What does self-distillation promise?</h2>
+<p>Wait; what made self-distillation so appealing to begin with? Let us have a peek at some results and claims made in self-distillation papers.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="opsd_motivation.png" class="img-fluid figure-img"></p>
+<figcaption>Motivation for on-policy self-distillation: the model learns by internalizing ground-truth solutions (from page 4 of <a href="https://arxiv.org/abs/2601.18734">OPSD</a>)</figcaption>
+</figure>
+</div>
+<p>OPSD claims that having a model internalizing ground truth solutions (via self-distillation), allows it to “teach itself”. This contrasts with the standard reinforcement learning paradigm which does learn by trial and error (e.g., GRPO needs both successful and unsuccessful rollouts to learn).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sdpo_lcb.png" class="img-fluid figure-img" style="width:4in"></p>
+<figcaption>SDPO vs.&nbsp;GRPO accuracy on LiveCodeBench v6 with Qwen3-8B (Figure 1 of <a href="https://arxiv.org/abs/2601.20802">SDPO</a>)</figcaption>
+</figure>
+</div>
+<p>SDPO claims to improve over GRPO performance on LiveCodeBench v6, by leveraging the “model’s ability to retrospectively identify its own mistakes in-context” and dense logit-level feedback to achieve both sample complexity and performance gains.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sdpo_sciknoweval.png" class="img-fluid figure-img" style="width:7in"></p>
+<figcaption>SDPO takeaway on science reasoning (SciKnowEval) and tool use (ToolAlpaca) (from page 7 of <a href="https://arxiv.org/abs/2601.20802">SDPO</a>)</figcaption>
+</figure>
+</div>
+<p>SDPO claims to demonstrate generalization and wall-clock speedups on hard reasoning tasks, training on science reasoning and tool use tasks.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="opsd_table2.png" class="img-fluid figure-img"></p>
+<figcaption>Accuracy of SFT, GRPO, and OPSD on AIME24, AIME25, and HMMT25 across Qwen3 models (Table 2 of <a href="https://arxiv.org/abs/2601.18734">OPSD</a>)</figcaption>
+</figure>
+</div>
+<p>On standard math benchmarks, OPSD claim that the use of privileged information yields consistent performance gains over GRPO, by “utilizing its own rationalization ability to grade its weaker self without access to the ground truth.”</p>
+<p>This is why self-distillation is appealing: it promises to allow us to use the model’s own internalization of environmental feedback to improve itself, instead of relying on external supervision.</p>
+<section id="why-might-self-distillation-work" class="level3">
+<h3 class="anchored" data-anchor-id="why-might-self-distillation-work">Why might self-distillation work?</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sdft_icl.png" class="img-fluid figure-img"></p>
+<figcaption>The in-context learning assumption behind self-distillation: a demonstration-conditioned model approximates the optimal policy (Section 3.2 of <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al.</a>)</figcaption>
+</figure>
+</div>
+<p>To justify self-distillation, <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al.</a> hypothesize that self-distillation works because feeding the model with privileged information (e.g., reference solutions) allows it to approximate the optimal policy <span class="math display">\[\pi^* = \argmax_\pi \mathbb{E}_{y\sim \pi}[R(y)]-\beta \KL{\pi}{\pi_0}.\]</span></p>
+<p>And indeed! We show in Proposition 3.1 of <a href="https://arxiv.org/abs/2610.18613">our paper</a> that if <span class="math inline">\(\pi_\theta(\cdot|z)=\pi^*(\cdot)\)</span>, then <strong>self-distillation is equivalent to <em>directly performing gradient ascent on the expected reward</em>.</strong> Under this assumption, self-distillation should maximize the same objective as GRPO, just with better sample efficiency afforded by dense logit-level feedback.</p>
+</section>
+</section>
+<section id="how-the-cookie-crumbles" class="level2">
+<h2 class="anchored" data-anchor-id="how-the-cookie-crumbles">How the cookie crumbles</h2>
+<p>Well? How well does this assumption hold? How well do self-distillation gradients align with reward maximization gradients? We measure exactly this.</p>
+<table class="table-striped table-hover caption-top table">
+<caption>Cosine similarity between training gradients and the test-set reward maximization gradient on LiveCodeBench v6</caption>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Qwen3-8B</th>
+<th>Qwen3-14B</th>
+<th>Olmo-3-7B-Instruct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GRPO</td>
+<td><strong>+0.121</strong></td>
+<td><strong>+0.070</strong></td>
+<td><strong>+0.422</strong></td>
+</tr>
+<tr class="even">
+<td>SDPO</td>
+<td>−0.167</td>
+<td>+0.013</td>
+<td>+0.062</td>
+</tr>
+</tbody>
+</table>
+<table class="table-striped table-hover caption-top table">
+<caption>Cosine similarity between training gradients and the test-set reward maximization gradient on AIME24, AIME25, and HMMT 25</caption>
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Qwen3-1.7B</th>
+<th>Qwen3-4B</th>
+<th>Qwen3-8B</th>
+<th>Qwen3-14B</th>
+<th>Olmo-3-7B-Instruct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GRPO</td>
+<td><strong>+0.018</strong></td>
+<td><strong>+0.060</strong></td>
+<td><strong>+0.118</strong></td>
+<td><strong>+0.166</strong></td>
+<td>+0.026</td>
+</tr>
+<tr class="even">
+<td>OPSD</td>
+<td>−0.205</td>
+<td>−0.132</td>
+<td>−0.160</td>
+<td>−0.075</td>
+<td><strong>+0.057</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This seems to indicate that by and large<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, self-distillation gradients are orthogonal or even anti-aligned with the reward maximization gradient. By a Taylor series argument, with small enough steps, <em>following the self-distillation gradient will not improve the expected reward, and may even hurt it.</em></p>
+<p>Wait, so how do you explain the previously reported performance gains?</p>
+<section id="overfitting-abounds" class="level3">
+<h3 class="anchored" data-anchor-id="overfitting-abounds">Overfitting abounds</h3>
+<p>Note the following excerpt from page 8 of the <a href="https://arxiv.org/abs/2601.20802">SDPO</a> paper:</p>
+<blockquote class="blockquote">
+<p>We consider a setting with public and private unit tests, common for code contests and coding platforms like LeetCode, where the public tests are used for evaluation during training and the private tests are used for validation.</p>
+</blockquote>
+<p>In other words; <em>SDPO evaluates on the same LiveCodeBench v6 problems it trains on</em>, doing train-test splitting only across unit tests. Doing proper train-test splitting across problems yields the following curves:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sdpo_lcb_qwen8b.png" class="img-fluid figure-img"></p>
+<figcaption>Performance of GRPO and SDPO on LiveCodeBenchv6 using Qwen3-8B</figcaption>
+</figure>
+</div>
+<p>We see that although SDPO learns faster than GRPO on the training set (on both seen and unseen unit tests), it <em>overfits to the training problems</em>, and performs worse than GRPO on unseen problems. Moreover, training for longer than ~80 steps (marked in red) as SDPO does, shows that GRPO beats even SDPO on the training problems given enough time.</p>
+<p>How about SDPO’s reported gains on science reasoning and tool use tasks?</p>
+<table class="table-striped table-hover caption-top table">
+<caption>In-domain accuracy Qwen3-8B after 200 steps, by training domain</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Biology</th>
+<th>Chemistry</th>
+<th>Material</th>
+<th>Physics</th>
+<th>Tool use</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SDPO</td>
+<td><strong>52.5</strong></td>
+<td><strong>77.7</strong></td>
+<td>73.5</td>
+<td><strong>73.1</strong></td>
+<td>53.5</td>
+<td>66.1</td>
+</tr>
+<tr class="even">
+<td>GRPO</td>
+<td>51.0</td>
+<td>68.9</td>
+<td><strong>76.2</strong></td>
+<td>72.4</td>
+<td><strong>66.3</strong></td>
+<td><strong>67.0</strong></td>
+</tr>
+</tbody>
+</table>
+<table class="table-striped table-hover caption-top table">
+<caption>OOD change (mean accuracy change over all non-training domains) of Qwen3-8B after 200 steps, by training domain</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Biology</th>
+<th>Chemistry</th>
+<th>Material</th>
+<th>Physics</th>
+<th>Tool use</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SDPO</td>
+<td>−12.8</td>
+<td>−16.6</td>
+<td>−7.1</td>
+<td>−12.5</td>
+<td><strong>+0.9</strong></td>
+<td>−9.6</td>
+</tr>
+<tr class="even">
+<td>GRPO</td>
+<td><strong>+1.2</strong></td>
+<td><strong>+1.6</strong></td>
+<td><strong>+1.2</strong></td>
+<td><strong>+0.9</strong></td>
+<td>−2.1</td>
+<td><strong>+0.6</strong></td>
+</tr>
+</tbody>
+</table>
+<p>We find that although SDPO and GRPO perform similarly on the training domains, SDPO <em>degrades</em> performance on out-of-distribution domains, consistent with the overfitting hypothesis.</p>
+</section>
+<section id="unprivileged-information" class="level3">
+<h3 class="anchored" data-anchor-id="unprivileged-information">Unprivileged information</h3>
+<p>Recall that OPSD claims that it works by “exploit[ing] the ground-truth solution <span class="math inline">\(y^*\)</span> directly as privileged information during training, enabling the model to serve as its own teacher”. But a careful reading of OPSD reveals that the OPSD teacher differs from its student in <em>two</em> ways: the teacher sees the reference solution, <em>and</em> the teacher has Qwen3’s thinking mode turned on, while the student has it turned off. Moreover, note that they also report validation performance with <em>thinking mode turned on</em>.</p>
+<p>So which one matters? We find that really, it doesn’t matter what <span class="math inline">\(y^*\)</span> you feed into the model; you can feed a random solution or no solution at all, and OPSD performance is largely unchanged and even improves in some cases.</p>
+<div style="font-size: 100%;">
+<table class="table-striped table-hover caption-top table">
+<caption>Thinking-on accuracy of Qwen3-8B; <span class="math inline">\(z\)</span> denotes the reference solution for the OPSD teacher, with teacher thinking on during OPSD training</caption>
+<colgroup>
+<col style="width: 24%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>AIME24</th>
+<th>AIME25</th>
+<th>HMMT25</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Base</td>
+<td>75.6</td>
+<td>68.6</td>
+<td>45.0</td>
+<td>63.1</td>
+</tr>
+<tr class="even">
+<td>OPSD, ref <span class="math inline">\(z\)</span></td>
+<td>77.2</td>
+<td><strong>71.6</strong></td>
+<td>46.4</td>
+<td>65.0</td>
+</tr>
+<tr class="odd">
+<td>OPSD, no <span class="math inline">\(z\)</span></td>
+<td>78.1</td>
+<td>71.0</td>
+<td><strong>46.7</strong></td>
+<td><strong>65.3</strong></td>
+</tr>
+<tr class="even">
+<td>OPSD, shuffled <span class="math inline">\(z\)</span></td>
+<td><strong>78.3</strong></td>
+<td>71.2</td>
+<td>45.9</td>
+<td>65.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Note that these thinking-on gains are small to begin with. The difference becomes much clearer when we evaluate with thinking off, the same mode the student is trained in:</p>
+<table class="table-striped table-hover caption-top table">
+<caption>Average thinking-off accuracy (AIME24, AIME25, HMMT25) of Qwen3-8B; the base model scores 19.3</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Ref <span class="math inline">\(z\)</span></th>
+<th>No <span class="math inline">\(z\)</span></th>
+<th>Shuffled <span class="math inline">\(z\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OPSD (teacher think)</td>
+<td>33.1</td>
+<td><strong>44.6</strong></td>
+<td>33.2</td>
+</tr>
+<tr class="even">
+<td>OPSD (teacher no think)</td>
+<td>19.5</td>
+<td>20.4</td>
+<td>19.1</td>
+</tr>
+</tbody>
+</table>
+<p>Turning on teacher thinking improves thinking-off accuracy by 17.3 points on average, while swapping in the reference solution of a different problem changes it by at most 0.4 points. Without teacher thinking, OPSD barely improves over the base model at all.</p>
+<p>We find by looking at the generations, thinking-off students trained with a thinking teacher learn to <em>think anyway</em> breaking their non-thinking mode, and this is what leads to performance improvements. <em>OPSD’s gains come from leaking thinking-mode behavior into the non-thinking mode</em>, which requires no privileged information at all.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>So, does self-distillation improve reasoning? Not in the way it promises to.</p>
+<p>Self-distillation was supposed to let a model <em>teach itself</em>, turning privileged information into a dense, sample-efficient learning signal. Instead, we find that its reported gains either don’t generalize, or don’t come from privileged information at all:</p>
+<ul>
+<li><strong>SDPO</strong> improves on the problems it trains on, at the cost of new problems and other domains</li>
+<li><strong>OPSD</strong> gains just as much or more when the reference solution is shuffled or removed; what it really transfers is thinking-mode behavior</li>
+<li><strong>Both</strong> produce gradients that largely point away from reward maximization on held-out problems</li>
+</ul>
+<p>We hope that this work encourages algorithmic development of reinforcement learning methods that actually leverage privileged information to yield robust performance gains.</p>
+</section>
+<section id="bibtex" class="level2">
+<h2 class="anchored" data-anchor-id="bibtex">BibTeX</h2>
+<p>If you found this work useful, please cite it as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@misc</span>{<span class="ot">adhinarta2026selfdistillation</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>      <span class="dt">title</span>={Does self-distillation improve reasoning?}, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      <span class="dt">author</span>={Jason Ken Adhinarta and Raina Wu and Ashutosh Sharma and Avinash Balakrishnan and Rameswar Panda and Polina Golland and Yoon Kim and Zhang-Wei Hong},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">year</span>={2026},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">eprint</span>={2610.18613},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">archivePrefix</span>={arXiv},</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">primaryClass</span>={cs.LG},</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">url</span>={https://arxiv.org/abs/2610.18613}, </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Olmo-3-7B-Instruct OPSD numbers do not clearly resolve above 0 after estimating measurement errors through 4 seeds runs<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jasonkena\.github\.io\/blog\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "jasonkena/jasonkena.github.io";
+    script.dataset.repoId = "R_kgDOI6NuQw";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOI6NuQ84C-c-s";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

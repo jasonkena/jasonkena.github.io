@@ -202,7 +202,7 @@ publications:
       - ykim
       - zhong
     venue: Pre-to-Post Workshop, NeurIPS 2026
-    link: "[paper](https://openreview.net/forum?id=XsKmQyAbUZ)"
+    link: "[preprint](https://arxiv.org/abs/2610.18613) / [repo](https://github.com/sleepypandu/does-sd-improve-reasoning) / [blog](https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/)"
     image: static/lcb_train_seen.png
     image_bg: static/lcb_test_unseen.png
   - name: "Scalable and multiplexed recorders of gene regulation dynamics across weeks"

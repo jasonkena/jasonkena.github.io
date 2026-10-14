@@ -10,7 +10,421 @@
 <atom:link href="https://jasonkena.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Jason Ken Adhinarta&#39;s blog</description>
 <generator>quarto-1.9.38</generator>
-<lastBuildDate>Wed, 03 Jun 2026 04:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 14 Oct 2026 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>A critical look at self-distillation for reasoning</title>
+  <dc:creator>Jason Ken Adhinarta</dc:creator>
+  <dc:creator>Raina Wu</dc:creator>
+  <dc:creator>Zhang-Wei Hong</dc:creator>
+  <link>https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div style="display:none">
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cnewcommand%7B%5CKL%7D%5B2%5D%7BD_%7B%5Cmathrm%7BKL%7D%7D%5C!%5Cleft(#1%20%5C,%5C%7C%5C,%20#2%5Cright)%7D%0A%5Cnewcommand%7B%5CD%7D%5B2%5D%7BD%5C!%5Cleft(#1%20%5C,%5C%7C%5C,%20#2%5Cright)%7D%0A%5Cnewcommand%7B%5Csg%7D%5B1%5D%7B%5Coperatorname%7Bsg%7D%5Cleft(#1%5Cright)%7D%0A%5Cnewcommand%7B%5Cargmax%7D%7B%5Coperatorname*%7Barg%5C,max%7D%7D%0A"></p>
+</div>
+<hr style="margin-top:-1.5rem">
+<p><span style="font-size: 0.8em; font-style: italic;">This blog post summarizes our paper which will appear at the <a href="https://pretrain2posttrain.github.io/">Transitioning from Pre-Training to Post-Training</a> workshop at NeurIPS 2026. This is joint work with Ashutosh Sharma, Avinash Balakrishnan, and Rameswar Panda at the <a href="https://mitibm.mit.edu/">MIT-IBM Computing Research Lab</a>; along with Polina Golland and Yoon Kim at <a href="https://www.csail.mit.edu/">MIT CSAIL</a>.</span></p>
+<p><span style="font-size: 0.8em; font-style: italic;">This post focuses on the main results; the paper covers detailed ablations and results across Qwen3 (1.7B–14B) and Olmo-3-7B-Instruct along with our experimental setup; we also provide code to reproduce our results.</span></p>
+<p><a href="https://arxiv.org/abs/2610.18613" class="btn btn-outline-primary btn-sm"><i class="ai ai-arxiv"></i> arXiv</a> <a href="https://github.com/sleepypandu/does-sd-improve-reasoning" class="btn btn-outline-primary btn-sm"><i class="bi bi-github"></i> Code</a></p>
+<hr>
+<p><a href="https://arxiv.org/abs/2608.01589">There</a> <a href="https://arxiv.org/abs/2605.22511">has</a> <a href="https://arxiv.org/abs/2605.17497">been</a> <a href="https://arxiv.org/abs/2607.28582">a</a> <a href="https://arxiv.org/abs/2605.13255">surge</a> <a href="https://arxiv.org/abs/2606.19327">of</a> <a href="https://arxiv.org/abs/2604.12002">interest</a> <a href="https://arxiv.org/abs/2608.06296">in</a> <a href="https://arxiv.org/abs/2605.28791">the</a> <a href="https://arxiv.org/abs/2605.12652v2">self-distillation</a> <a href="https://arxiv.org/abs/2609.25623">paradigm</a>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What is self-distillation?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<p>In typical policy gradient reinforcement learning (e.g., <a href="https://arxiv.org/abs/2402.03300">GRPO</a>), a model is trained to increase its expected reward, through gradient ascent on <img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D_%7By%5Csim%20%5Cpi_%5Ctheta%7D%5BR(y)%5D">. This provides <em>coarse</em> learning signals at the level of entire trajectories <img src="https://latex.codecogs.com/png.latex?y%5Csim%20%5Cpi_%5Ctheta">, which might require a large number of samples to learn effectively.</p>
+<p>But we know that LLMs generate better solutions when given additional context. Namely, if we tell the model that the last time it tried to solve a task, it triggered <code>ModuleNotFoundError: No module named 'numpy'</code>, it probably won’t make the same mistake. So, why not train the model to behave <em>as if it had access to this additional context?</em></p>
+<p>In self-distillation, this additional context or <em>privileged information</em> can take many forms: reference solutions to math problems, code execution feedback, etc. In practice, in self-distillation we minimize the “difference” between the model’s behavior with and without privileged information along trajectories sampled without privileged information. Formally, we write: <img src="https://latex.codecogs.com/png.latex?%0A%5Cmathcal%7BL%7D_%7B%5Coperatorname%7BSD%7D%7D=%5Cmathbb%7BE%7D_%7By%5Csim%20%5Coperatorname%7B%5Csg%7B%5Cpi_%5Ctheta%7D%7D%7D%5Cleft%5B%5Csum_%7Bt=1%7D%5E%7B%7Cy%7C%7D%20%5CD%7B%5Cpi_%5Ctheta(y_t%7Cy_%7B%3Ct%7D)%7D%7B%5Csg%7B%20%5Cpi_%5Ctheta(y_t%7Cy_%7B%3Ct%7D,%20z)%20%7D%7D%5Cright%5D,%0A"> where <img src="https://latex.codecogs.com/png.latex?%5Coperatorname%7Bsg%7D"> is the stop-gradient operator, and <img src="https://latex.codecogs.com/png.latex?z"> is the privileged information, and <img src="https://latex.codecogs.com/png.latex?D"> is a choice of information divergence. With <img src="https://latex.codecogs.com/png.latex?D=D_%7B%5Coperatorname%7BKL%7D%7D">, <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BL%7D_%7B%5Coperatorname%7BSD%7D%7D"> looks a lot like <img src="https://latex.codecogs.com/png.latex?%5CKL%7B%5Cpi_%5Ctheta(%5Ccdot)%7D%7B%5Cpi_%5Ctheta(%5Ccdot%7Cz)%7D">.</p>
+</div>
+</div>
+</div>
+<p><a href="https://arxiv.org/abs/2607.01763">However</a>, <a href="https://arxiv.org/abs/2607.05184">several</a> <a href="https://arxiv.org/abs/2603.24472">recent</a> <a href="https://arxiv.org/abs/2608.04794">works</a> <a href="https://arxiv.org/abs/2608.09263">have</a> <a href="https://arxiv.org/abs/2608.18271">questioned</a> <a href="https://arxiv.org/abs/2609.20612">the</a> <a href="https://arxiv.org/abs/2608.09228">effectiveness</a> <a href="https://arxiv.org/abs/2606.11709">of</a> <a href="https://arxiv.org/abs/2604.03128">self-distillation</a>. Self-distillation papers report impressive performance gains which are often hard to replicate. To study why, we carefully reproduce two representative methods, <a href="https://arxiv.org/abs/2601.20802">Self-Distillation Policy Optimization (SDPO)</a> and <a href="https://arxiv.org/abs/2601.18734">On-Policy Self-Distillation (OPSD)</a>, and study the assumptions underlying self-distillation as presented in <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al</a>. We discover the following:</p>
+<ul>
+<li><strong>SDPO induces overfitting</strong>, with degraded performance on either new problems or out-of-distribution tasks</li>
+<li><strong>OPSD does not rely on privileged information</strong>, instead depending on the Qwen3 thinking-mode toggles</li>
+<li><strong>Self-distillation gradients point the wrong way</strong>, breaking self-distillation assumptions</li>
+</ul>
+<p>Together, we believe these findings highlight the need to develop reinforcement learning algorithms that can leverage privileged information to robustly boost performance. <em>A niche we claim that self-distillation does not fill.</em></p>
+<!--
+https://arxiv.org/abs/2601.19897 # SDFT
+https://arxiv.org/abs/2601.20802 # SDPO
+https://arxiv.org/abs/2601.18734 # OPSD
+
+https://arxiv.org/abs/2608.01589 # PS opsd
+https://arxiv.org/abs/2605.22511 # search-E1
+https://arxiv.org/abs/2605.17497 # SSOPD
+https://arxiv.org/abs/2607.28582 # beta-OPSD
+https://arxiv.org/abs/2605.13255 # entropy-guided
+https://arxiv.org/abs/2606.19327 # rubric-guided
+https://arxiv.org/abs/2604.12002 # self-distillation zero
+https://arxiv.org/abs/2608.06296 # OPSD without any supervision
+https://arxiv.org/abs/2605.28791 # skill-conditioned OPSD
+https://arxiv.org/abs/2605.12652v2 # multirollout
+https://arxiv.org/abs/2609.25623 # privileged context design
+
+https://arxiv.org/abs/2607.01763 # denser neq better
+https://arxiv.org/abs/2607.05184 # rethinking for thinking models
+https://arxiv.org/abs/2603.24472 # sometimes degrade reasoning
+https://arxiv.org/abs/2608.04794 # microsoft
+https://arxiv.org/abs/2608.09263 # not value
+https://arxiv.org/abs/2608.18271 # rethinking PI
+https://arxiv.org/abs/2609.20612 # what does PI add
+https://arxiv.org/abs/2608.09228 # context induced behavior
+https://arxiv.org/abs/2606.11709 # RLCSD: Reinforcement Learning with Contrastive On-Policy Self-Distillation
+https://arxiv.org/abs/2604.03128 # Self-Distilled RLVR
+-->
+<section id="what-does-self-distillation-promise" class="level2">
+<h2 class="anchored" data-anchor-id="what-does-self-distillation-promise">What does self-distillation promise?</h2>
+<p>Wait; what made self-distillation so appealing to begin with? Let us have a peek at some results and claims made in self-distillation papers.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/opsd_motivation.png" class="img-fluid figure-img"></p>
+<figcaption>Motivation for on-policy self-distillation: the model learns by internalizing ground-truth solutions (from page 4 of <a href="https://arxiv.org/abs/2601.18734">OPSD</a>)</figcaption>
+</figure>
+</div>
+<p>OPSD claims that having a model internalizing ground truth solutions (via self-distillation), allows it to “teach itself”. This contrasts with the standard reinforcement learning paradigm which does learn by trial and error (e.g., GRPO needs both successful and unsuccessful rollouts to learn).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/sdpo_lcb.png" class="img-fluid figure-img" style="width:4in"></p>
+<figcaption>SDPO vs.&nbsp;GRPO accuracy on LiveCodeBench v6 with Qwen3-8B (Figure 1 of <a href="https://arxiv.org/abs/2601.20802">SDPO</a>)</figcaption>
+</figure>
+</div>
+<p>SDPO claims to improve over GRPO performance on LiveCodeBench v6, by leveraging the “model’s ability to retrospectively identify its own mistakes in-context” and dense logit-level feedback to achieve both sample complexity and performance gains.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/sdpo_sciknoweval.png" class="img-fluid figure-img" style="width:7in"></p>
+<figcaption>SDPO takeaway on science reasoning (SciKnowEval) and tool use (ToolAlpaca) (from page 7 of <a href="https://arxiv.org/abs/2601.20802">SDPO</a>)</figcaption>
+</figure>
+</div>
+<p>SDPO claims to demonstrate generalization and wall-clock speedups on hard reasoning tasks, training on science reasoning and tool use tasks.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/opsd_table2.png" class="img-fluid figure-img"></p>
+<figcaption>Accuracy of SFT, GRPO, and OPSD on AIME24, AIME25, and HMMT25 across Qwen3 models (Table 2 of <a href="https://arxiv.org/abs/2601.18734">OPSD</a>)</figcaption>
+</figure>
+</div>
+<p>On standard math benchmarks, OPSD claim that the use of privileged information yields consistent performance gains over GRPO, by “utilizing its own rationalization ability to grade its weaker self without access to the ground truth.”</p>
+<p>This is why self-distillation is appealing: it promises to allow us to use the model’s own internalization of environmental feedback to improve itself, instead of relying on external supervision.</p>
+<section id="why-might-self-distillation-work" class="level3">
+<h3 class="anchored" data-anchor-id="why-might-self-distillation-work">Why might self-distillation work?</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/sdft_icl.png" class="img-fluid figure-img"></p>
+<figcaption>The in-context learning assumption behind self-distillation: a demonstration-conditioned model approximates the optimal policy (Section 3.2 of <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al.</a>)</figcaption>
+</figure>
+</div>
+<p>To justify self-distillation, <a href="https://arxiv.org/abs/2601.19897">Shenfeld et al.</a> hypothesize that self-distillation works because feeding the model with privileged information (e.g., reference solutions) allows it to approximate the optimal policy <img src="https://latex.codecogs.com/png.latex?%5Cpi%5E*%20=%20%5Cargmax_%5Cpi%20%5Cmathbb%7BE%7D_%7By%5Csim%20%5Cpi%7D%5BR(y)%5D-%5Cbeta%20%5CKL%7B%5Cpi%7D%7B%5Cpi_0%7D."></p>
+<p>And indeed! We show in Proposition 3.1 of <a href="https://arxiv.org/abs/2610.18613">our paper</a> that if <img src="https://latex.codecogs.com/png.latex?%5Cpi_%5Ctheta(%5Ccdot%7Cz)=%5Cpi%5E*(%5Ccdot)">, then <strong>self-distillation is equivalent to <em>directly performing gradient ascent on the expected reward</em>.</strong> Under this assumption, self-distillation should maximize the same objective as GRPO, just with better sample efficiency afforded by dense logit-level feedback.</p>
+</section>
+</section>
+<section id="how-the-cookie-crumbles" class="level2">
+<h2 class="anchored" data-anchor-id="how-the-cookie-crumbles">How the cookie crumbles</h2>
+<p>Well? How well does this assumption hold? How well do self-distillation gradients align with reward maximization gradients? We measure exactly this.</p>
+<table class="table-striped table-hover caption-top table">
+<caption>Cosine similarity between training gradients and the test-set reward maximization gradient on LiveCodeBench v6</caption>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Qwen3-8B</th>
+<th>Qwen3-14B</th>
+<th>Olmo-3-7B-Instruct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GRPO</td>
+<td><strong>+0.121</strong></td>
+<td><strong>+0.070</strong></td>
+<td><strong>+0.422</strong></td>
+</tr>
+<tr class="even">
+<td>SDPO</td>
+<td>−0.167</td>
+<td>+0.013</td>
+<td>+0.062</td>
+</tr>
+</tbody>
+</table>
+<table class="table-striped table-hover caption-top table">
+<caption>Cosine similarity between training gradients and the test-set reward maximization gradient on AIME24, AIME25, and HMMT 25</caption>
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Qwen3-1.7B</th>
+<th>Qwen3-4B</th>
+<th>Qwen3-8B</th>
+<th>Qwen3-14B</th>
+<th>Olmo-3-7B-Instruct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GRPO</td>
+<td><strong>+0.018</strong></td>
+<td><strong>+0.060</strong></td>
+<td><strong>+0.118</strong></td>
+<td><strong>+0.166</strong></td>
+<td>+0.026</td>
+</tr>
+<tr class="even">
+<td>OPSD</td>
+<td>−0.205</td>
+<td>−0.132</td>
+<td>−0.160</td>
+<td>−0.075</td>
+<td><strong>+0.057</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This seems to indicate that by and large<sup>1</sup>, self-distillation gradients are orthogonal or even anti-aligned with the reward maximization gradient. By a Taylor series argument, with small enough steps, <em>following the self-distillation gradient will not improve the expected reward, and may even hurt it.</em></p>
+<p>Wait, so how do you explain the previously reported performance gains?</p>
+<section id="overfitting-abounds" class="level3">
+<h3 class="anchored" data-anchor-id="overfitting-abounds">Overfitting abounds</h3>
+<p>Note the following excerpt from page 8 of the <a href="https://arxiv.org/abs/2601.20802">SDPO</a> paper:</p>
+<blockquote class="blockquote">
+<p>We consider a setting with public and private unit tests, common for code contests and coding platforms like LeetCode, where the public tests are used for evaluation during training and the private tests are used for validation.</p>
+</blockquote>
+<p>In other words; <em>SDPO evaluates on the same LiveCodeBench v6 problems it trains on</em>, doing train-test splitting only across unit tests. Doing proper train-test splitting across problems yields the following curves:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/sdpo_lcb_qwen8b.png" class="img-fluid figure-img"></p>
+<figcaption>Performance of GRPO and SDPO on LiveCodeBenchv6 using Qwen3-8B</figcaption>
+</figure>
+</div>
+<p>We see that although SDPO learns faster than GRPO on the training set (on both seen and unseen unit tests), it <em>overfits to the training problems</em>, and performs worse than GRPO on unseen problems. Moreover, training for longer than ~80 steps (marked in red) as SDPO does, shows that GRPO beats even SDPO on the training problems given enough time.</p>
+<p>How about SDPO’s reported gains on science reasoning and tool use tasks?</p>
+<table class="table-striped table-hover caption-top table">
+<caption>In-domain accuracy Qwen3-8B after 200 steps, by training domain</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Biology</th>
+<th>Chemistry</th>
+<th>Material</th>
+<th>Physics</th>
+<th>Tool use</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SDPO</td>
+<td><strong>52.5</strong></td>
+<td><strong>77.7</strong></td>
+<td>73.5</td>
+<td><strong>73.1</strong></td>
+<td>53.5</td>
+<td>66.1</td>
+</tr>
+<tr class="even">
+<td>GRPO</td>
+<td>51.0</td>
+<td>68.9</td>
+<td><strong>76.2</strong></td>
+<td>72.4</td>
+<td><strong>66.3</strong></td>
+<td><strong>67.0</strong></td>
+</tr>
+</tbody>
+</table>
+<table class="table-striped table-hover caption-top table">
+<caption>OOD change (mean accuracy change over all non-training domains) of Qwen3-8B after 200 steps, by training domain</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Biology</th>
+<th>Chemistry</th>
+<th>Material</th>
+<th>Physics</th>
+<th>Tool use</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SDPO</td>
+<td>−12.8</td>
+<td>−16.6</td>
+<td>−7.1</td>
+<td>−12.5</td>
+<td><strong>+0.9</strong></td>
+<td>−9.6</td>
+</tr>
+<tr class="even">
+<td>GRPO</td>
+<td><strong>+1.2</strong></td>
+<td><strong>+1.6</strong></td>
+<td><strong>+1.2</strong></td>
+<td><strong>+0.9</strong></td>
+<td>−2.1</td>
+<td><strong>+0.6</strong></td>
+</tr>
+</tbody>
+</table>
+<p>We find that although SDPO and GRPO perform similarly on the training domains, SDPO <em>degrades</em> performance on out-of-distribution domains, consistent with the overfitting hypothesis.</p>
+</section>
+<section id="unprivileged-information" class="level3">
+<h3 class="anchored" data-anchor-id="unprivileged-information">Unprivileged information</h3>
+<p>Recall that OPSD claims that it works by “exploit[ing] the ground-truth solution <img src="https://latex.codecogs.com/png.latex?y%5E*"> directly as privileged information during training, enabling the model to serve as its own teacher”. But a careful reading of OPSD reveals that the OPSD teacher differs from its student in <em>two</em> ways: the teacher sees the reference solution, <em>and</em> the teacher has Qwen3’s thinking mode turned on, while the student has it turned off. Moreover, note that they also report validation performance with <em>thinking mode turned on</em>.</p>
+<p>So which one matters? We find that really, it doesn’t matter what <img src="https://latex.codecogs.com/png.latex?y%5E*"> you feed into the model; you can feed a random solution or no solution at all, and OPSD performance is largely unchanged and even improves in some cases.</p>
+<div style="font-size: 100%;">
+<table class="table-striped table-hover caption-top table">
+<caption>Thinking-on accuracy of Qwen3-8B; <img src="https://latex.codecogs.com/png.latex?z"> denotes the reference solution for the OPSD teacher, with teacher thinking on during OPSD training</caption>
+<colgroup>
+<col style="width: 24%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>AIME24</th>
+<th>AIME25</th>
+<th>HMMT25</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Base</td>
+<td>75.6</td>
+<td>68.6</td>
+<td>45.0</td>
+<td>63.1</td>
+</tr>
+<tr class="even">
+<td>OPSD, ref <img src="https://latex.codecogs.com/png.latex?z"></td>
+<td>77.2</td>
+<td><strong>71.6</strong></td>
+<td>46.4</td>
+<td>65.0</td>
+</tr>
+<tr class="odd">
+<td>OPSD, no <img src="https://latex.codecogs.com/png.latex?z"></td>
+<td>78.1</td>
+<td>71.0</td>
+<td><strong>46.7</strong></td>
+<td><strong>65.3</strong></td>
+</tr>
+<tr class="even">
+<td>OPSD, shuffled <img src="https://latex.codecogs.com/png.latex?z"></td>
+<td><strong>78.3</strong></td>
+<td>71.2</td>
+<td>45.9</td>
+<td>65.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Note that these thinking-on gains are small to begin with. The difference becomes much clearer when we evaluate with thinking off, the same mode the student is trained in:</p>
+<table class="table-striped table-hover caption-top table">
+<caption>Average thinking-off accuracy (AIME24, AIME25, HMMT25) of Qwen3-8B; the base model scores 19.3</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>Ref <img src="https://latex.codecogs.com/png.latex?z"></th>
+<th>No <img src="https://latex.codecogs.com/png.latex?z"></th>
+<th>Shuffled <img src="https://latex.codecogs.com/png.latex?z"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OPSD (teacher think)</td>
+<td>33.1</td>
+<td><strong>44.6</strong></td>
+<td>33.2</td>
+</tr>
+<tr class="even">
+<td>OPSD (teacher no think)</td>
+<td>19.5</td>
+<td>20.4</td>
+<td>19.1</td>
+</tr>
+</tbody>
+</table>
+<p>Turning on teacher thinking improves thinking-off accuracy by 17.3 points on average, while swapping in the reference solution of a different problem changes it by at most 0.4 points. Without teacher thinking, OPSD barely improves over the base model at all.</p>
+<p>We find by looking at the generations, thinking-off students trained with a thinking teacher learn to <em>think anyway</em> breaking their non-thinking mode, and this is what leads to performance improvements. <em>OPSD’s gains come from leaking thinking-mode behavior into the non-thinking mode</em>, which requires no privileged information at all.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>So, does self-distillation improve reasoning? Not in the way it promises to.</p>
+<p>Self-distillation was supposed to let a model <em>teach itself</em>, turning privileged information into a dense, sample-efficient learning signal. Instead, we find that its reported gains either don’t generalize, or don’t come from privileged information at all:</p>
+<ul>
+<li><strong>SDPO</strong> improves on the problems it trains on, at the cost of new problems and other domains</li>
+<li><strong>OPSD</strong> gains just as much or more when the reference solution is shuffled or removed; what it really transfers is thinking-mode behavior</li>
+<li><strong>Both</strong> produce gradients that largely point away from reward maximization on held-out problems</li>
+</ul>
+<p>We hope that this work encourages algorithmic development of reinforcement learning methods that actually leverage privileged information to yield robust performance gains.</p>
+</section>
+<section id="bibtex" class="level2">
+<h2 class="anchored" data-anchor-id="bibtex">BibTeX</h2>
+<p>If you found this work useful, please cite it as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@misc</span>{<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">adhinarta2026selfdistillation</span>,</span>
+<span id="cb1-2">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span>={Does self-distillation improve reasoning?}, </span>
+<span id="cb1-3">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span>={Jason Ken Adhinarta and Raina Wu and Ashutosh Sharma and Avinash Balakrishnan and Rameswar Panda and Polina Golland and Yoon Kim and Zhang-Wei Hong},</span>
+<span id="cb1-4">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span>={2026},</span>
+<span id="cb1-5">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">eprint</span>={2610.18613},</span>
+<span id="cb1-6">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">archivePrefix</span>={arXiv},</span>
+<span id="cb1-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">primaryClass</span>={cs.LG},</span>
+<span id="cb1-8">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span>={https://arxiv.org/abs/2610.18613}, </span>
+<span id="cb1-9">}</span></code></pre></div></div>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Olmo-3-7B-Instruct OPSD numbers do not clearly resolve above 0 after estimating measurement errors through 4 seeds runs↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>rl</category>
+  <category>distillation</category>
+  <guid>https://jasonkena.github.io/blog/posts/does_self_distillation_improve_reasoning/</guid>
+  <pubDate>Wed, 14 Oct 2026 04:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Good teachers don’t cheat</title>
   <dc:creator>Jason Ken Adhinarta</dc:creator>

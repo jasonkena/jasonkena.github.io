@@ -17,3 +17,4 @@ format:
       - cosmo
       - brand
     css: styles.css
+    header-includes: '<link rel="icon" href="https://jasonkena.github.io/static/favicon.svg" type="image/svg+xml">'
