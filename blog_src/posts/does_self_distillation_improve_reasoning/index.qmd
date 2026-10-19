@@ -21,6 +21,17 @@ format:
         caption, figcaption {
            text-align: center;
         }
+        mjx-container[display="true"] {
+           overflow-x: auto;
+           overflow-y: hidden;
+           max-width: 100%;
+        }
+        @media (max-width: 576px) {
+          table.table {
+             display: block;
+             overflow-x: auto;
+          }
+        }
         </style>
 ---
 ::: {style="display:none"}
@@ -59,7 +70,7 @@ where $\operatorname{sg}$ is the stop-gradient operator, and $z$ is the privileg
 :::
 
 
- [However](https://arxiv.org/abs/2607.01763), [several](https://arxiv.org/abs/2607.05184) [recent](https://arxiv.org/abs/2603.24472) [works](https://arxiv.org/abs/2608.04794) [have](https://arxiv.org/abs/2608.09263) [questioned](https://arxiv.org/abs/2608.18271) [the](https://arxiv.org/abs/2609.20612) [effectiveness](https://arxiv.org/abs/2608.09228) [of](https://arxiv.org/abs/2606.11709) [self-distillation](https://arxiv.org/abs/2604.03128). Self-distillation papers report impressive performance gains which are often hard to replicate. To study why, we carefully reproduce two representative methods, [Self-Distillation Policy Optimization (SDPO)](https://arxiv.org/abs/2601.20802) and [On-Policy Self-Distillation (OPSD)](https://arxiv.org/abs/2601.18734), and study the assumptions underlying self-distillation as presented in [Shenfeld et al](https://arxiv.org/abs/2601.19897). We discover the following:
+[However](https://arxiv.org/abs/2607.01763), [several](https://arxiv.org/abs/2607.05184) [recent](https://arxiv.org/abs/2603.24472) [works](https://arxiv.org/abs/2608.04794) [have](https://arxiv.org/abs/2608.09263) [questioned](https://arxiv.org/abs/2608.18271) [the](https://arxiv.org/abs/2609.20612) [effectiveness](https://arxiv.org/abs/2608.09228) [of](https://arxiv.org/abs/2606.11709) [self-distillation](https://arxiv.org/abs/2604.03128). Self-distillation papers report impressive performance gains which are often hard to replicate. To study why, we carefully reproduce two representative methods, [Self-Distillation Policy Optimization (SDPO)](https://arxiv.org/abs/2601.20802) and [On-Policy Self-Distillation (OPSD)](https://arxiv.org/abs/2601.18734), and study the assumptions underlying self-distillation as presented in [Shenfeld et al](https://arxiv.org/abs/2601.19897). We discover the following:
 
 - **SDPO induces overfitting**, with degraded performance on either new problems or out-of-distribution tasks
 - **OPSD does not rely on privileged information**, instead depending on the Qwen3 thinking-mode toggles
@@ -102,9 +113,9 @@ https://arxiv.org/abs/2604.03128 # Self-Distilled RLVR
 ## What does self-distillation promise?
 Wait; what made self-distillation so appealing to begin with? Let us have a peek at some results and claims made in self-distillation papers.
 
-![Motivation for on-policy self-distillation: the model learns by internalizing ground-truth solutions (from page 4 of [OPSD](https://arxiv.org/abs/2601.18734))](opsd_motivation.png){fig-align="center"}
+![Motivation for on-policy self-distillation: the model learns by internalizing ground-truth solutions (from page 4 of [OPSD](https://arxiv.org/abs/2601.18734))](opsd_motivation.png){width=4.5in fig-align="center"}
 
-OPSD claims that having a model internalizing ground truth solutions (via self-distillation), allows it to "teach itself". This contrasts with the standard reinforcement learning paradigm which does learn by trial and error (e.g., GRPO needs both successful and unsuccessful rollouts to learn).
+OPSD claims that having a model internalize ground-truth solutions (via self-distillation) allows it to "teach itself". This contrasts with the standard reinforcement learning paradigm, which learns by trial and error (e.g., GRPO needs both successful and unsuccessful rollouts to learn).
 
 ![SDPO vs. GRPO accuracy on LiveCodeBench v6 with Qwen3-8B (Figure 1 of [SDPO](https://arxiv.org/abs/2601.20802))](sdpo_lcb.png){width=4in fig-align="center"}
 
@@ -114,9 +125,9 @@ SDPO claims to improve over GRPO performance on LiveCodeBench v6, by leveraging 
 
 SDPO claims to demonstrate generalization and wall-clock speedups on hard reasoning tasks, training on science reasoning and tool use tasks.
 
-![Accuracy of SFT, GRPO, and OPSD on AIME24, AIME25, and HMMT25 across Qwen3 models (Table 2 of [OPSD](https://arxiv.org/abs/2601.18734))](opsd_table2.png){fig-align="center"}
+![Accuracy of SFT, GRPO, and OPSD on AIME24, AIME25, and HMMT25 across Qwen3 models (Table 2 of [OPSD](https://arxiv.org/abs/2601.18734))](opsd_table2.png){width=5in fig-align="center"}
 
-On standard math benchmarks, OPSD claim that the use of privileged information yields consistent performance gains over GRPO, by "utilizing its own rationalization ability to grade its weaker self without access to the ground truth."
+On standard math benchmarks, OPSD claims that the use of privileged information yields consistent performance gains over GRPO, by "utilizing its own rationalization ability to grade its weaker self without access to the ground truth."
 
 This is why self-distillation is appealing: it promises to allow us to use the model's own internalization of environmental feedback to improve itself, instead of relying on external supervision.
 
@@ -146,7 +157,7 @@ Well? How well does this assumption hold? How well do self-distillation gradient
 
 : Cosine similarity between training gradients and the test-set reward maximization gradient on AIME24, AIME25, and HMMT 25 {.striped .hover}
 
-This seems to indicate that by and large^[Olmo-3-7B-Instruct OPSD numbers do not clearly resolve above 0 after estimating measurement errors through 4 seeds runs], self-distillation gradients are orthogonal or even anti-aligned with the reward maximization gradient. By a Taylor series argument, with small enough steps, _following the self-distillation gradient will not improve the expected reward, and may even hurt it._
+This seems to indicate that by and large^[Olmo-3-7B-Instruct OPSD numbers do not clearly resolve above 0 after estimating measurement errors through 4 seeds], self-distillation gradients are orthogonal or even anti-aligned with the reward maximization gradient. By a Taylor series argument, with small enough steps, _following the self-distillation gradient will not improve the expected reward, and may even hurt it._
 
 Wait, so how do you explain the previously reported performance gains?
 
@@ -155,11 +166,11 @@ Note the following excerpt from page 8 of the [SDPO](https://arxiv.org/abs/2601.
 
 > We consider a setting with public and private unit tests, common for code contests and coding platforms like LeetCode, where the public tests are used for evaluation during training and the private tests are used for validation.
 
-In other words; _SDPO evaluates on the same LiveCodeBench v6 problems it trains on_, doing train-test splitting only across unit tests. Doing proper train-test splitting across problems yields the following curves:
+In other words, _SDPO evaluates on the same LiveCodeBench v6 problems it trains on_, doing train-test splitting only across unit tests. Doing proper train-test splitting across problems yields the following curves:
 
-![Performance of GRPO and SDPO on LiveCodeBenchv6 using Qwen3-8B](sdpo_lcb_qwen8b.png){fig-align="center"}
+![Performance of GRPO and SDPO on LiveCodeBench v6 using Qwen3-8B](sdpo_lcb_qwen8b.png){fig-align="center"}
 
-We see that although SDPO learns faster than GRPO on the training set (on both seen and unseen unit tests), it _overfits to the training problems_, and performs worse than GRPO on unseen problems. Moreover, training for longer than ~80 steps (marked in red) as SDPO does, shows that GRPO beats even SDPO on the training problems given enough time.
+We see that although SDPO learns faster than GRPO on the training set (on both seen and unseen unit tests), it _overfits to the training problems_, and performs worse than GRPO on unseen problems. Moreover, training for longer than the ~80 steps that SDPO uses (marked in red) shows that GRPO beats even SDPO on the training problems given enough time.
 
 How about SDPO's reported gains on science reasoning and tool use tasks?
 
@@ -168,7 +179,7 @@ How about SDPO's reported gains on science reasoning and tool use tasks?
 | SDPO | **52.5** | **77.7** | 73.5 | **73.1** | 53.5 | 66.1 |
 | GRPO | 51.0 | 68.9 | **76.2** | 72.4 | **66.3** | **67.0** |
 
-: In-domain accuracy Qwen3-8B after 200 steps, by training domain {.striped .hover}
+: In-domain accuracy of Qwen3-8B after 200 steps, by training domain {.striped .hover}
 
 | | Biology | Chemistry | Material | Physics | Tool use | Avg |
 |---|---|---|---|---|---|---|
@@ -206,7 +217,7 @@ Note that these thinking-on gains are small to begin with. The difference become
 
 Turning on teacher thinking improves thinking-off accuracy by 17.3 points on average, while swapping in the reference solution of a different problem changes it by at most 0.4 points. Without teacher thinking, OPSD barely improves over the base model at all.
 
-We find by looking at the generations, thinking-off students trained with a thinking teacher learn to _think anyway_ breaking their non-thinking mode, and this is what leads to performance improvements. _OPSD's gains come from leaking thinking-mode behavior into the non-thinking mode_, which requires no privileged information at all.
+Looking at the generations, we find that thinking-off students trained with a thinking teacher learn to _think anyway_, breaking their non-thinking mode, and this is what leads to performance improvements. _OPSD's gains come from leaking thinking-mode behavior into the non-thinking mode_, which requires no privileged information at all.
 
 ## Conclusion
 So, does self-distillation improve reasoning? Not in the way it promises to.
