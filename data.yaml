@@ -192,7 +192,7 @@ people:
     link: "[Zhang-Wei Hong](https://williamd4112.github.io/)"
 
 publications:
-  - name: "A critical look at self-distillation for reasoning"
+  - name: "Does self-distillation improve reasoning?"
     authors:
       - jadhinarta*
       - rwu*
